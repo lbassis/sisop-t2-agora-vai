@@ -19,4 +19,6 @@ all:
 clean:
 	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/*.o $(SRC_DIR)/*~ $(INC_DIR)/*~ *~
 
+assis:	
+	@cat lucas.txt
 
