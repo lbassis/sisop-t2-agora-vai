@@ -12,21 +12,12 @@
 #define SUPER_BLOCK_SIZE 2
 
 
-void readElement(FILE *file, int size, char *result) {
+int hexToInt(unsigned char *result) {
 
-  int i = 0;
-
-  while (i<size) {
-    fread(&result[i], 1, 1, file);
-    printf("leu o %d\n", result[i]);
-    i++;
-  }
+  int value = (result[0] << 8 | result[1]);
+  return value;
 }
 
-int hexToInt(char *hex) {
-  int number = (int)strtol(hex, NULL, 16);
-  return number;
-}
 
 void diskId() { // só printa mesmo
 
@@ -44,26 +35,19 @@ void diskId() { // só printa mesmo
 
 int superBlockSize() {
 
-  char buffer[SUPER_BLOCK_SIZE];
+  unsigned char buffer[SUPER_BLOCK_SIZE];
   FILE *file = fopen(DISK_FILE, "r");
 
-  fseek(file, SUPER_BLOCK_SIZE_OFFSET, SEEK_SET);
+  fseek(file, 6, SEEK_SET);
 
-  readElement(file, SUPER_BLOCK_SIZE, buffer);
-  printf("%s\n", buffer);
-  //fread(buffer, 1, SUPER_BLOCK_SIZE, file);
-  
-  //buffer[SUPER_BLOCK_SIZE] = (char) 0; // marca de final da string
-  // printf("hex: %s\n", buffer);
-  //printf("SuperBlockSize: %d\n", hexToInt(buffer));
-  //printf("%d\n", hexToInt("10"));
-  fclose(file);
+  fread(buffer, 1, SUPER_BLOCK_SIZE, file);
 
-  return 0;
+  return hexToInt(buffer);
 }
 
 int main() {
 
-   diskId();
-  superBlockSize();
+  diskId();
+
+
 }
