@@ -13,19 +13,19 @@
 #define DISK_SIZE 4
 
 #define NUMBER_OF_SECTORS_OFFSET 12
-#define NUMBER_OF_SECTORS_SIZE 2 // na especificaçao diz 4 mas deve ta errado!!
+#define NUMBER_OF_SECTORS_SIZE 4 // na especificaçao diz 4 mas deve ta errado!!
 
-#define SECTORS_PER_CLUSTER_OFFSET 14
+#define SECTORS_PER_CLUSTER_OFFSET 16
 #define SECTORS_PER_CLUSTER_SIZE 4
 
-#define FAT_SECTOR_START_OFFSET 18
+#define FAT_SECTOR_START_OFFSET 20
 #define FAT_SECTOR_START_SIZE 4
 
-#define ROOT_DIR_CLUSTER_OFFSET 22 // ????
-#define ROOT_DIR_CLUSTER_SIZE 2
+#define ROOT_DIR_CLUSTER_OFFSET 24
+#define ROOT_DIR_CLUSTER_SIZE 4
 
-#define DATA_SECTOR_START_OFFSET 24 // ????
-#define DATA_SECTOR_START_SIZE 2
+#define DATA_SECTOR_START_OFFSET 28
+#define DATA_SECTOR_START_SIZE 4
 
 
 typedef struct SUPERBLOCK {
@@ -42,11 +42,11 @@ unsigned int hexToInt(unsigned char *buffer, int size) { // da pra generalizar i
   unsigned int value;
 
   if (size == 4) {
-    value = (buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3]);
+    value = (buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0]);
   }
 
   else if (size == 2) {
-    value = (buffer[0] << 8 | buffer[1]);
+    value = (buffer[1] << 8 | buffer[0]);
   }
   
   return value;
