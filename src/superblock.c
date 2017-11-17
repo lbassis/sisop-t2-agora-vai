@@ -1,43 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <superblock.h>
 
 #include <apidisk.h>
 #include <t2fs.h>
-
-#define DISK_FILE "t2fs_disk.dat"
-
-#define ID_SIZE 4
-
-#define SUPER_BLOCK_SIZE_OFFSET 6
-#define SUPER_BLOCK_SIZE 2
-
-#define DISK_SIZE_OFFSET 8
-#define DISK_SIZE 4
-
-#define NUMBER_OF_SECTORS_OFFSET 12
-#define NUMBER_OF_SECTORS_SIZE 4
-
-#define SECTORS_PER_CLUSTER_OFFSET 16
-#define SECTORS_PER_CLUSTER_SIZE 4
-
-#define FAT_SECTOR_START_OFFSET 20
-#define FAT_SECTOR_START_SIZE 4
-
-#define ROOT_DIR_CLUSTER_OFFSET 24
-#define ROOT_DIR_CLUSTER_SIZE 4
-
-#define DATA_SECTOR_START_OFFSET 28
-#define DATA_SECTOR_START_SIZE 4
-
-typedef struct SUPERBLOCK {
-  unsigned int diskSize;
-  unsigned int numberOfSectors;
-  unsigned int sectorsPerCluster;
-  unsigned int fatSectorStart;
-  unsigned int rootDirCluster;
-  unsigned int dataSectorStart;
-}SUPERBLOCK;
 
 
 #define DIR_ENTRY_OFFSET 0
@@ -57,10 +24,8 @@ typedef struct DIRECTORY {
   char name[55];
   unsigned int bytesFileSize;
   unsigned int firstCluster;
-}
+}DIRECTORY;
 
-
-SUPERBLOCK superblock;
 DIRECTORY rootDir;
 
 unsigned int hexToInt(unsigned char *buffer, int size) { // da pra generalizar isso pra deixar mais bonito
@@ -163,21 +128,21 @@ unsigned int readDataSectorStart(FILE *file) {
   return hexToInt(buffer, DATA_SECTOR_START_SIZE);
 }
 
-void readSuperBlock() {
+void readSuperBlock(SUPERBLOCK *superblock) {
 
   FILE *file = fopen(DISK_FILE, "r");
   
-  superblock.diskSize = readDiskSize(file);
-  superblock.numberOfSectors = readNumberOfSectors(file);
-  superblock.sectorsPerCluster = readSectorsPerCluster(file);
-  superblock.fatSectorStart = readFatSectorStart(file);
-  superblock.rootDirCluster = readRootDirCluster(file); 
-  superblock.dataSectorStart = readDataSectorStart(file);
+  superblock->diskSize = readDiskSize(file);
+  superblock->numberOfSectors = readNumberOfSectors(file);
+  superblock->sectorsPerCluster = readSectorsPerCluster(file);
+  superblock->fatSectorStart = readFatSectorStart(file);
+  superblock->rootDirCluster = readRootDirCluster(file);
+  superblock->dataSectorStart = readDataSectorStart(file);
 
   fclose(file);
 }
 
-void printSuperBlock() {
+void printSuperBlock(SUPERBLOCK superblock) {
 
     printf("Disk Size: %u\nNumber of Sectors: %u\nSectors per Cluster: %u\nFAT Sector Start: %u\nRoot Directory Cluster: %u\nData Sector Start: %u\n", superblock.diskSize, superblock.numberOfSectors, superblock.sectorsPerCluster, superblock.fatSectorStart, superblock.rootDirCluster, superblock.dataSectorStart);
 
@@ -188,17 +153,24 @@ void readDirectory(DIRECTORY *dir, unsigned int dirFatEntry) { //dirFatEntry é 
 }
 
 
-
 int main() {
 
   diskId();
   SUPERBLOCK s;
-  readSuperBlock();
-
-  int dataStart = superblock.dataSectorStart * SECTOR_SIZE;
-  int rootFatEntry = dataStart + superblock.rootDirCluster * superblock.sectorsPerCluster * SECTOR_SIZE;
-
-  printf("%d\n", rootFatEntry);
+  readSuperBlock(&s);
+  printSuperBlock(s);
 
 }
 
+// int main() {
+//
+//   diskId();
+//   SUPERBLOCK s;
+//   readSuperBlock();
+//
+//   int dataStart = superblock.dataSectorStart * SECTOR_SIZE;
+//   int rootFatEntry = dataStart + superblock.rootDirCluster * superblock.sectorsPerCluster * SECTOR_SIZE;
+//
+//   printf("%d\n", rootFatEntry);
+//
+// }
