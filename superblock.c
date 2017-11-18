@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <apidisk.h>
+#include <t2fs.h>
+
 #define DISK_FILE "t2fs_disk.dat"
 
 #define ID_SIZE 4
@@ -13,7 +16,7 @@
 #define DISK_SIZE 4
 
 #define NUMBER_OF_SECTORS_OFFSET 12
-#define NUMBER_OF_SECTORS_SIZE 4 // na especificaçao diz 4 mas deve ta errado!!
+#define NUMBER_OF_SECTORS_SIZE 4
 
 #define SECTORS_PER_CLUSTER_OFFSET 16
 #define SECTORS_PER_CLUSTER_SIZE 4
@@ -27,7 +30,6 @@
 #define DATA_SECTOR_START_OFFSET 28
 #define DATA_SECTOR_START_SIZE 4
 
-
 typedef struct SUPERBLOCK {
   unsigned int diskSize;
   unsigned int numberOfSectors;
@@ -36,6 +38,30 @@ typedef struct SUPERBLOCK {
   unsigned int rootDirCluster;
   unsigned int dataSectorStart;
 }SUPERBLOCK;
+
+
+#define DIR_ENTRY_OFFSET 0
+#define DIR_ENTRY_SIZE 1
+
+#define DIR_NAME_OFFSET 1
+#define DIR_NAME_SIZE 55
+
+#define DIR_BYTES_FILE_SIZE_OFFSET 56
+#define DIR_BYTES_FILE_SIZE_SIZE 4
+
+#define DIR_FIRST_CLUSTER_OFFSET 60
+#define DIR_FIRST_CLUSTER_SIZE 4
+
+
+typedef struct DIRECTORY {
+  char name[55];
+  unsigned int bytesFileSize;
+  unsigned int firstCluster;
+}
+
+
+SUPERBLOCK superblock;
+DIRECTORY rootDir;
 
 unsigned int hexToInt(unsigned char *buffer, int size) { // da pra generalizar isso pra deixar mais bonito
 
@@ -137,33 +163,42 @@ unsigned int readDataSectorStart(FILE *file) {
   return hexToInt(buffer, DATA_SECTOR_START_SIZE);
 }
 
-void readSuperBlock(SUPERBLOCK *super) {
+void readSuperBlock() {
 
   FILE *file = fopen(DISK_FILE, "r");
   
-  super->diskSize = readDiskSize(file);
-  super->numberOfSectors = readNumberOfSectors(file);
-  super->sectorsPerCluster = readSectorsPerCluster(file);
-  super->fatSectorStart = readFatSectorStart(file);
-  super->rootDirCluster = readRootDirCluster(file); 
-  super->dataSectorStart = readDataSectorStart(file);
+  superblock.diskSize = readDiskSize(file);
+  superblock.numberOfSectors = readNumberOfSectors(file);
+  superblock.sectorsPerCluster = readSectorsPerCluster(file);
+  superblock.fatSectorStart = readFatSectorStart(file);
+  superblock.rootDirCluster = readRootDirCluster(file); 
+  superblock.dataSectorStart = readDataSectorStart(file);
 
   fclose(file);
 }
 
-void printSuperBlock(SUPERBLOCK s) {
+void printSuperBlock() {
 
-    printf("Disk Size: %u\nNumber of Sectors: %u\nSectors per Cluster: %u\nFAT Sector Start: %u\nRoot Directory Cluster: %u\nData Sector Start: %u\n", s.diskSize, s.numberOfSectors, s.sectorsPerCluster, s.fatSectorStart, s.rootDirCluster, s.dataSectorStart);
+    printf("Disk Size: %u\nNumber of Sectors: %u\nSectors per Cluster: %u\nFAT Sector Start: %u\nRoot Directory Cluster: %u\nData Sector Start: %u\n", superblock.diskSize, superblock.numberOfSectors, superblock.sectorsPerCluster, superblock.fatSectorStart, superblock.rootDirCluster, superblock.dataSectorStart);
 
 }
+  
+
+void readDirectory(DIRECTORY *dir, unsigned int dirFatEntry) { //dirFatEntry é o byte na tabela fat que especifica os clusters do maluco
+}
+
 
 
 int main() {
 
   diskId();
   SUPERBLOCK s;
-  readSuperBlock(&s);
-  printSuperBlock(s);
+  readSuperBlock();
+
+  int dataStart = superblock.dataSectorStart * SECTOR_SIZE;
+  int rootFatEntry = dataStart + superblock.rootDirCluster * superblock.sectorsPerCluster * SECTOR_SIZE;
+
+  printf("%d\n", rootFatEntry);
 
 }
 
