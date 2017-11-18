@@ -33,5 +33,5 @@ assis:
 	@cat lucas.txt
 
 run:
-	@gcc -g $(TEST_DIR)/main.c -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/aaa
+	@gcc -g $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/aaa
 	@./$(TEST_DIR)/aaa

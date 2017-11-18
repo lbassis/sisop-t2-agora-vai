@@ -7,27 +7,6 @@
 #include <t2fs.h>
 
 
-#define DIR_ENTRY_OFFSET 0
-#define DIR_ENTRY_SIZE 1
-
-#define DIR_NAME_OFFSET 1
-#define DIR_NAME_SIZE 55
-
-#define DIR_BYTES_FILE_SIZE_OFFSET 56
-#define DIR_BYTES_FILE_SIZE_SIZE 4
-
-#define DIR_FIRST_CLUSTER_OFFSET 60
-#define DIR_FIRST_CLUSTER_SIZE 4
-
-
-typedef struct DIRECTORY {
-  char name[55];
-  unsigned int bytesFileSize;
-  unsigned int firstCluster;
-}DIRECTORY;
-
-DIRECTORY rootDir;
-
 unsigned int hexToInt(unsigned char *buffer, int size) { // da pra generalizar isso pra deixar mais bonito
 
   unsigned int value;
@@ -145,20 +124,6 @@ void readSuperBlock(SUPERBLOCK *superblock) {
 void printSuperBlock(SUPERBLOCK superblock) {
 
     printf("Disk Size: %u\nNumber of Sectors: %u\nSectors per Cluster: %u\nFAT Sector Start: %u\nRoot Directory Cluster: %u\nData Sector Start: %u\n", superblock.diskSize, superblock.numberOfSectors, superblock.sectorsPerCluster, superblock.fatSectorStart, superblock.rootDirCluster, superblock.dataSectorStart);
-
-}
-  
-
-void readDirectory(DIRECTORY *dir, unsigned int dirFatEntry) { //dirFatEntry é o byte na tabela fat que especifica os clusters do maluco
-}
-
-
-int main() {
-
-  diskId();
-  SUPERBLOCK s;
-  readSuperBlock(&s);
-  printSuperBlock(s);
 
 }
 
