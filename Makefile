@@ -19,10 +19,11 @@ all: clean compile_to_object_file generate_static_library
 
 compile_to_object_file:
 	gcc  -g -c $(SRC_DIR)/superblock.c -I $(INC_DIR) -o $(BIN_DIR)/superblock.o
+	gcc  -g -c $(SRC_DIR)/disk_handler.c -I $(INC_DIR) -o $(BIN_DIR)/disk_handler.o
 	gcc  -g -c $(SRC_DIR)/t2fs.c -I $(INC_DIR) -o $(BIN_DIR)/t2fs.o
 
 generate_static_library:
-	ar crs $(LIB_DIR)/libt2fs.a $(BIN_DIR)/t2fs.o $(BIN_DIR)/superblock.o
+	ar crs $(LIB_DIR)/libt2fs.a $(BIN_DIR)/t2fs.o $(BIN_DIR)/superblock.o $(BIN_DIR)/disk_handler.o
 	
 clean:
 	cp $(BIN_DIR)/apidisk.o testes/
@@ -33,5 +34,5 @@ assis:
 	@cat lucas.txt
 
 run:
-	@gcc -g $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/aaa
-	@./$(TEST_DIR)/aaa
+	@gcc -g $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/main
+	@./$(TEST_DIR)/main
