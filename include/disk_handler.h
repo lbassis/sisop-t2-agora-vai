@@ -20,7 +20,7 @@
 
 void read_cluster(int cluster_index, char *buffer);
 struct t2fs_record read_record(char *buffer, int start);
-void read_all_records(int cluster_index);
+void read_all_records(int cluster_index, RECORDS_LIST **records);
 
 void print_sector(int sector);
 void print_cluster(char *buffer);

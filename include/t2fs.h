@@ -57,8 +57,10 @@ typedef struct {
 
 
 
-#define PATH_MAX_SIZE 32000
-char currentPath[PATH_MAX_SIZE];
+//#define PATH_MAX_SIZE 32000
+char *current_path;
+
+#define DELIM "/"
 
 /*-----------------------------------------------------------------------------
 Fun��o: Usada para identificar os desenvolvedores do T2FS.
