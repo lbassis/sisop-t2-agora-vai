@@ -15,7 +15,8 @@ void insert_record(RECORDS_LIST **q, struct t2fs_record record) {
   new->record = record;
   new->next = NULL;
 
-  if (q == NULL) {
+
+  if (*q == NULL) {
     *q = new;
   }
 
@@ -37,4 +38,17 @@ void print_records(RECORDS_LIST *q) {
     printf("%s\n", aux->record.name);
     aux = aux->next;
   }
+}
+
+void destroy_list(RECORDS_LIST **q) {
+
+    RECORDS_LIST *aux, *next;
+    aux = *q;
+
+    while (aux != NULL) {
+        next = aux->next;
+        free(aux);
+        aux = next;
+    }
+    *q = NULL;
 }

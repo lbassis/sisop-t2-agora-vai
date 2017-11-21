@@ -3,6 +3,7 @@
 #define __records_list__
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <t2fs.h>
 
 typedef struct RECORDS_LIST {
