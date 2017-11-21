@@ -8,6 +8,7 @@
 #include <apidisk.h>
 #include <t2fs.h>
 #include <disk_handler.h>
+#include <records_list.h>
 
 
 #define DATA_SECTOR_START 129
