@@ -3,6 +3,9 @@
 #include <t2fs.h>
 #include <disk_handler.h>
 #include <records_list.h>
+#include <string.h>
+
+
 
 void print_sector(int sector) {
   int i, j;
@@ -43,6 +46,26 @@ struct t2fs_record read_record(char *buffer, int start) {
   return record;
 }
 
+int get_record_initial_cluster(struct t2fs_record record) {
+    return record.firstCluster;
+}
+
+struct t2fs_record *find_record(RECORDS_LIST *list, char *name) {
+
+
+    RECORDS_LIST *aux = list;
+
+    while (aux != NULL) {
+        //printf("comparando %s com %s\n", aux->record.name, name);
+        if (strcmp(aux->record.name, name) == 0) {
+            return &(aux->record);
+        }
+        aux = aux->next;
+    }
+
+    return NULL;
+}
+
 void print_record(struct t2fs_record record) {
   printf("=========================\n\n");
   printf("TypeVal: %hhx\n", record.TypeVal);
@@ -62,20 +85,18 @@ void read_cluster(int cluster_index, char *buffer) {
       buffer[j + offset] = local_buffer[j];
     }
 
-    offset += 256;
+    offset += 256; // b
     i ++;
-  } while(i < 4);
+    } while(i < 4); // sectors per cluster
 }
 
-// LUCAS_PAU_NO_CU_DE_ASSIS
-// essa porra tem que retornar uma lista com os records (ou receber um ponteiro e ir adicionando nele)
-void read_all_records(int cluster_index) {
+void read_all_records(int cluster_index, RECORDS_LIST **records) {
   int i = 0;
   int number_of_records = CLUSTER_SIZE / sizeof(struct t2fs_record);
   unsigned char buffer[CLUSTER_SIZE];
   struct t2fs_record record;
 
-  RECORDS_LIST *records = newList();
+  *records = newList();
 
   read_cluster(cluster_index, buffer);
 
@@ -85,12 +106,55 @@ void read_all_records(int cluster_index) {
     record = read_record(buffer, offset);
     // Aqui deve inserir o record na lista SE E SOMENTE SE o TypeVal dele não for 0
     if (record.TypeVal != 0) {
-      insert_record(&records, record);
+      insert_record(records, record);
     }
   }
-  printf("\n\n");
+  //printf("\n\n");
 
-  print_records(records);
-  destroy_list(&records);
-  print_records(records);
+  //print_records(*records);
+}
+
+int get_initial_cluster_from_path(char *path) {
+
+    int root_cluster = 2; // TEM QUE ARRUMAR ///////////////////////////////////////
+
+    RECORDS_LIST *directory;
+    struct t2fs_record current_record;
+    char *buffer, *pathCopy;
+    int current_initial_cluster = root_cluster;
+
+    pathCopy = malloc(sizeof(strlen(path)));
+    strcpy(pathCopy, path);
+
+
+
+    read_all_records(root_cluster, &directory);
+    buffer = strtok(pathCopy, DELIM);
+
+    while (buffer != NULL) {
+         if (find_record(directory, buffer) != NULL) { // acha o record com esse nome
+            current_record = *find_record(directory, buffer);
+            current_initial_cluster = get_record_initial_cluster(current_record); // pega o inicio do cluster desse diret
+            destroy_list(&directory); // limpa a lista
+            read_all_records(current_initial_cluster, &directory); // recomeça a parada
+            buffer = strtok(NULL, "/");
+        }
+
+        else {
+            return -1;
+        }
+    }
+
+    // se saiu do while numa boa é pq achou tudo
+
+    printf("\n\nresultado do ls em %s \n", current_path);
+    RECORDS_LIST *testano;
+    read_all_records(current_initial_cluster, &testano);
+    print_records(testano);
+    return current_initial_cluster;
+}
+
+void ls() {
+    RECORDS_LIST *a;
+    read_all_records(get_initial_cluster_from_path(current_path), &a);
 }

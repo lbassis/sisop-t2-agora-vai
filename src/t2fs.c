@@ -7,11 +7,11 @@ RECORDS_LIST *open_dirs;
 int has_initialized = 0;
 
 void init() {
-    currentPath[0] = '/';
-    currentPath[1] = 0;
+  current_path = malloc(sizeof(int));
+  current_path[0] = '/';
     
-    open_files = newList();
-    open_dirs = newList();
+  open_files = newList();
+  open_dirs = newList();
 }
 
 int identify2 (char *name, int size) {
@@ -133,7 +133,9 @@ int mkdir2 (char *pathname) {}
 
 int rmdir2 (char *pathname) {}
 
-int chdir2 (char *pathname) {}
+int chdir2 (char *pathname) {
+    current_path = strcat(current_path, pathname);
+}
 
 int getcwd2 (char *pathname, int size) {}
 

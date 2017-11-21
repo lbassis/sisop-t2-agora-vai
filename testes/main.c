@@ -5,23 +5,30 @@
 #include <disk_handler.h>
 #include <fat.h>
 
-
 int main() {
-  // identify2(NULL, 0);
-  // read2(0, NULL, 0);
-  
   // int i;
   // for (i = 0; i < 11; i++) {
   //   open2(NULL);
   // }
   
-  open2(NULL);
-  open2(NULL);
-  open2(NULL);
-  
-  close2(0);
-  
-  // read2(0, NULL, 0);
-  
+  // open2(NULL);
+  // open2(NULL);
+  // open2(NULL);
+  //
+  // close2(0);
+
+  int i;
+
+  init();
+  for (i = 0; i < 10; i++) {
+    int value = read_fat_entry(i);
+    printf("\nindex: %i\nvalue: %hhx\n", i, value);
+  }
+
+  //get_initial_cluster_from_path("/dir1");
+  ls();
+  chdir2("dir1");
+  ls();
+
   return 0;
 }
