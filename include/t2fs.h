@@ -9,6 +9,8 @@
 #define TYPEVAL_REGULAR     0x01
 #define TYPEVAL_DIRETORIO   0x02
 
+#define MAX_ITEMS_IN_OPEN_LIST 10
+
 typedef int FILE2;
 typedef int DIR2;
 
