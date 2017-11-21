@@ -1,6 +1,12 @@
 #include <superblock.h>
 #include <t2fs.h>
+#include <disk_handler.h>
 
+
+void init() {
+    currentPath[0] = '/';
+    currentPath[1] = 0;
+}
 
 int identify2 (char *name, int size) {
   // apenas por motivo de teste, aqui tem chamadas às funções do superblock.c

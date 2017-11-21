@@ -56,6 +56,10 @@ typedef struct {
 } DIRENT2;
 
 
+
+#define PATH_MAX_SIZE 32000
+char currentPath[PATH_MAX_SIZE];
+
 /*-----------------------------------------------------------------------------
 Fun��o: Usada para identificar os desenvolvedores do T2FS.
 	Essa fun��o copia um string de identifica��o para o ponteiro indicado por "name".
@@ -246,7 +250,7 @@ Fun��o:	Fun��o que informa o diret�rio atual de trabalho.
 
 Entra:	pathname -> ponteiro para buffer onde copiar o pathname
 	size -> tamanho do buffer "pathname" (n�mero m�ximo de bytes a serem copiados).
-	
+
 Sa�da:
 	Se a opera��o foi realizada com sucesso, a fun��o retorna "0" (zero).
 	Caso ocorra algum erro, a fun��o retorna um valor diferente de zero.
