@@ -6,6 +6,17 @@
 #include <fat.h>
 
 int main() {
+  // int i;
+  // for (i = 0; i < 11; i++) {
+  //   open2(NULL);
+  // }
+  
+  // open2(NULL);
+  // open2(NULL);
+  // open2(NULL);
+  //
+  // close2(0);
+
   int i;
 
   init();

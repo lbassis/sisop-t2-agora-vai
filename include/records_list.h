@@ -14,5 +14,6 @@ typedef struct RECORDS_LIST {
 RECORDS_LIST *newList();
 void insert_record(RECORDS_LIST **l, struct t2fs_record record);
 void print_records(RECORDS_LIST *q);
+int list_length(RECORDS_LIST *q);
 
 #endif
