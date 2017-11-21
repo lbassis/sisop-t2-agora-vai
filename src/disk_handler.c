@@ -82,24 +82,36 @@ void read_all_records(int cluster_index) {
     record = read_record(buffer, offset);
     // Aqui deve inserir o record na lista SE E SOMENTE SE o TypeVal dele não for 0
     if (record.TypeVal != 0) {
-      // print_record(record);
+      print_record(record);
       
       if (record.TypeVal == 2) {
         if (strcmp(record.name, ".") != 0 && strcmp(record.name, "..") != 0) {
-          print_record(record);
-          
           unsigned char dir_buffer[256 * 4];
-        
           read_all_records(record.firstCluster);
         }
       }
       
       if (record.TypeVal == 1) {
-        unsigned char file_buffer[256 * 4];
-      
-        read_cluster(record.firstCluster, file_buffer);
         printf("\n==== Conteúdo do arquivo \"%s\" ====\n", record.name);
+        
+        unsigned char file_buffer[256 * 4];
+        read_cluster(record.firstCluster, file_buffer);
         printf("%s\n\n", file_buffer);
+        
+        if (record.bytesFileSize > CLUSTER_SIZE) {
+          // este 8 abaixo deve ser lido da fat pra saber onde está o proximo cluster do arquivo
+          read_cluster(8, file_buffer);
+          printf("%s\n\n", file_buffer);
+          
+          // int current_size = record.bytesFileSize;
+          // while(current_size > CLUSTER_SIZE) {
+          //   current_size = current_size - CLUSTER_SIZE;
+          //
+          //   int next_cluster = read_fat_at_position();
+          //   read_cluster(next_cluster, file_buffer);
+          //   printf("%s\n\n", file_buffer);
+          // }
+        }
       }
     }
   }

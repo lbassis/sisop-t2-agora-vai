@@ -1,13 +1,10 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <superblock.h>
 #include <t2fs.h>
 
 
 int identify2 (char *name, int size) {
   // apenas por motivo de teste, aqui tem chamadas às funções do superblock.c
-  printf("\n== Printando diretamente do identify2 ==\n\n");
+  printf("\n== Printando diretamente do identify2 ==s\n");
   diskId();
   SUPERBLOCK s;
   readSuperBlock(&s);
