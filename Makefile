@@ -38,3 +38,6 @@ assis:
 run:
 	@gcc -g $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/main
 	@./$(TEST_DIR)/main
+
+valgrindo_run:
+	@valgrind $(TEST_DIR)/main
