@@ -101,7 +101,7 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
   read_cluster(cluster_index, buffer);
 
   for (i = 0; i < number_of_records; i++) {
-    int offset = sizeof(GENERIC_FILE) * i;
+    int offset = sizeof(struct t2fs_record) * i;
 
     generic_file.record = read_record(buffer, offset);
     // Aqui deve inserir o record na lista SE E SOMENTE SE o TypeVal dele não for 0
@@ -270,4 +270,3 @@ char *get_father_dir_path(char *path) {
 
     return ".......";
 }
-
