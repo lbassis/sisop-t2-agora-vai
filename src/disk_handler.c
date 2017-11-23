@@ -187,7 +187,7 @@ unsigned int first_empty_cluster() {
             printf("\n");
             if (zeroes == 4) { // tudo zerado retorna o cluster que é assim
                 printf("achou 4 zeros no %d\n", i+j);
-                return first_sector+i+j; // substituir isso por current_sector
+                return i+j; // substituir isso por current_sector
             }
             j++;
         }
