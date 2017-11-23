@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <t2fs.h>
 
 
 #define DISK_FILE "t2fs_disk.dat"
@@ -32,17 +33,9 @@
 #define DATA_SECTOR_START_SIZE 4
 
 
-typedef struct SUPERBLOCK {
-  unsigned int diskSize;
-  unsigned int numberOfSectors;
-  unsigned int sectorsPerCluster;
-  unsigned int fatSectorStart;
-  unsigned int rootDirCluster;
-  unsigned int dataSectorStart;
-}SUPERBLOCK;
 
 void diskId();
-void readSuperBlock(SUPERBLOCK *super);
-void printSuperBlock(SUPERBLOCK s);
+void readSuperBlock(struct t2fs_superbloco *super);
+void printSuperBlock(struct t2fs_superbloco s);
 
 #endif

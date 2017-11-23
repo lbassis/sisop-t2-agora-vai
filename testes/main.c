@@ -26,9 +26,10 @@ int main() {
   }
 
   //get_initial_cluster_from_path("/dir1");
-  ls();
-  chdir2("dir1");
-  ls();
+  // ls();
+  //chdir2("dir1");
+  //ls();
+  printf("%d\n", first_empty_cluster());
 
   return 0;
 }

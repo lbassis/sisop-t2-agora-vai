@@ -107,23 +107,23 @@ unsigned int readDataSectorStart(FILE *file) {
   return hexToInt(buffer, DATA_SECTOR_START_SIZE);
 }
 
-void readSuperBlock(SUPERBLOCK *superblock) {
+void readSuperBlock(struct t2fs_superbloco *superblock) {
 
   FILE *file = fopen(DISK_FILE, "r");
   
-  superblock->diskSize = readDiskSize(file);
-  superblock->numberOfSectors = readNumberOfSectors(file);
-  superblock->sectorsPerCluster = readSectorsPerCluster(file);
-  superblock->fatSectorStart = readFatSectorStart(file);
-  superblock->rootDirCluster = readRootDirCluster(file);
-  superblock->dataSectorStart = readDataSectorStart(file);
+  superblock->DiskSize = readDiskSize(file);
+  superblock->NofSectors = readNumberOfSectors(file);
+  superblock->SectorsPerCluster = readSectorsPerCluster(file);
+  superblock->pFATSectorStart = readFatSectorStart(file);
+  superblock->RootDirCluster = readRootDirCluster(file);
+  superblock->DataSectorStart = readDataSectorStart(file);
 
   fclose(file);
 }
 
-void printSuperBlock(SUPERBLOCK superblock) {
+void printSuperBlock(struct t2fs_superbloco superblock) {
 
-    printf("Disk Size: %u\nNumber of Sectors: %u\nSectors per Cluster: %u\nFAT Sector Start: %u\nRoot Directory Cluster: %u\nData Sector Start: %u\n", superblock.diskSize, superblock.numberOfSectors, superblock.sectorsPerCluster, superblock.fatSectorStart, superblock.rootDirCluster, superblock.dataSectorStart);
+    printf("Disk Size: %u\nNumber of Sectors: %u\nSectors per Cluster: %u\nFAT Sector Start: %u\nRoot Directory Cluster: %u\nData Sector Start: %u\n", superblock.DiskSize, superblock.NofSectors, superblock.SectorsPerCluster, superblock.pFATSectorStart, superblock.RootDirCluster, superblock.DataSectorStart);
 
 }
 
