@@ -28,9 +28,38 @@ int identify2 (char *name, int size) {
   // printSuperBlock(s);
 }
 
-FILE2 create2 (char *filename) {}
+FILE2 create2 (char *filename) {
 
-int delete2 (char *filename) {}
+  // considerando que vai criar sempre no current_path (nao pode incluir path no nome do arquivo):
+
+  // 1. encontra o primeiro cluster livre e atribui a ele ff ff ff ff
+  // 2. abre o diretorio do current path
+  // 2.1 se nao encontrar -> erro
+  // 3. adiciona a nova entrada ao diretorio: typeval = 1, name = filename, bytesfilesize = 0, firstcluster = valor encontrado em 1.
+  // 4. fecha o diretorio
+
+  // acredito que sempre crie vazio, entao nao precisa mexer no cluster dele
+}
+
+int delete2 (char *filename) {
+
+  // considerando que vai excluir sempre do current_path (nao pode incluir o path no nome do arquivo):
+
+  // 1. abre o diretorio do current path
+  // 2. le o registro com name == filename
+  // 2.1 se nao encontrar -> erro
+  // 3. encontra a entrada do firstCluster na fat
+  // 4. enquanto (valor_lido_na_fat != ff ff ff ff:
+  //                proximo_cluster = valor_lido_na_fat
+  //                zera (proximo_cluster) (escreve 0 em tudo [talvez isso nao seja necessario])
+  //                valor_lido_na_fat <- 0
+  //                valor_lido_na_fat <- proximo_cluster
+  //  (isso vai apagar todos os clusters e encadeamentos MENOS O PRIMEIRO!!!)
+  // 5. zera (firstCluster)
+  // 6. remove do diretorio o registro com name == filename
+  // 7. fecha o diretorio
+
+}
 
 FILE2 open2 (char *filename) {
   if (!has_initialized) {
@@ -125,13 +154,56 @@ int read2 (FILE2 handle, char *buffer, int size) {
 
 int write2 (FILE2 handle, char *buffer, int size) {}
 
-int truncate2 (FILE2 handle) {}
+int truncate2 (FILE2 handle) {
 
-int seek2 (FILE2 handle, unsigned int offset) {}
+  // 1. encontra o arquivo com handle == handle na lista de arquivos abertos
+  // 1.2 se nao encontrar -> erro
+  // 2. encontra o cluster onde se encontra o ponteiro do record
+  // 3. initialCluster <- entrada na fat do cluster encontrado em 2
+  // 4. enquanto initialCluster != ff ff ff ff
+  //                zera o conteudo do initialCluster
+  //                proxCluster <- entrada do initialCluster na fat
+  //                muda a entrada do initialCluster na fat pra ff ff ff ff
+  //                initialCluster <- proxCluster
+  // 5. atualiza tamanho do arquivo
 
-int mkdir2 (char *pathname) {}
+}
 
-int rmdir2 (char *pathname) {}
+int seek2 (FILE2 handle, unsigned int offset) {
+
+  // 1. encontra o arquivo com handle == handle na lista de arquivos abertos
+  // 1.2 se nao encontrar -> erro
+  // 2. posiciona o ponteiro do record na posiçao anterior + offset (????)
+
+}
+
+int mkdir2 (char *pathname) {
+
+
+  // considerando que vai criar sempre no current_path (nao pode incluir path no nome do diretorio):
+
+  // 1. encontra o primeiro cluster livre e atribui a ele ff ff ff ff
+  // 2. abre o diretorio do current path
+  // 2.1 se nao encontrar -> erro
+  // 3. adiciona a nova entrada ao diretorio: typeval = 2, name = filename, bytesfilesize = 0, firstcluster = valor encontrado em 1.
+  // 4. fecha o diretorio
+
+  // acredito que sempre crie vazio, entao nao precisa mexer no cluster dele
+}
+
+int rmdir2 (char *pathname) {
+
+  // considerando que vai excluir sempre do current_path (nao pode incluir o path no nome do diretorio):
+
+  // 1. abre o diretorio do current path
+  // 2. le o registro com name == filename
+  // 2.1 se nao encontrar -> erro
+  // 3. encontra a entrada do firstCluster na fat
+  // 4. zera (firstCluster)
+  // 5. remove do diretorio o registro com name == filename
+  // 7. fecha o diretorio
+
+}
 
 int chdir2 (char *pathname) {
     current_path = strcat(current_path, pathname);
