@@ -38,11 +38,14 @@
 // testando lista de GENERIC_FILE
 //
 int main() {
-    open2(NULL);
-    open2(NULL);
-    open2(NULL);
+    open2("file1");
+    open2("meuzovo");
+    open2("xunda");
 
     close2(0);
-    
+
+    open2("jorge");
+    open2("tua_voh");
+
     return 0;
 }

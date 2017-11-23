@@ -110,3 +110,41 @@ int remove_record_at_index(RECORDS_LIST **q, int handler_to_remove) {
 
   return -1;
 }
+
+//
+// funcao pra quando der open2() ou opendir2():
+//
+// recebe uma lista e procura o primeiro handler entre [0, máximo_da_lista - 1]
+// retorna o primeiro handler vazio que achar, ou -1 se não achar nenhum
+//
+
+int get_fisrt_handler_available(RECORDS_LIST *list, int list_max_items) {
+    RECORDS_LIST *aux;
+    int i, found_handler;
+
+    // pra cada valor de handler possível
+    for (i = 0; i < list_max_items - 1; i++) {
+
+        // bota o aux no início da lista e seta flag pra 0
+        aux = list;
+        found_handler = 0;
+
+        // percorre a lista vendo se o handler i já foi usado
+        while (aux != NULL) {
+            // se este handler estiver em uso pelo item atual da lista, seta uma flag
+            if (aux->generic_file.handler == i) {
+                found_handler = 1;
+                break;
+            }
+          aux = aux->next;
+        }
+
+        // se percorreu toda a lista e não achou o handler em nenhum item da lista, retorna ele
+        if (!found_handler) {
+            return i;
+        }
+    }
+
+    // se chegar aqui é pq não tem jeito, não há nenhum handler disponível
+    return -1;
+}

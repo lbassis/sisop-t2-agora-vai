@@ -21,5 +21,8 @@ RECORDS_LIST *newList();
 void insert_record(RECORDS_LIST **q, GENERIC_FILE generic_file);
 void print_records(RECORDS_LIST *q);
 int list_length(RECORDS_LIST *q);
+GENERIC_FILE *get_record_at_index(RECORDS_LIST *q, int index);
+int remove_record_at_index(RECORDS_LIST **q, int handler_to_remove);
+int get_fisrt_handler_available(RECORDS_LIST *list, int list_max_items);
 
 #endif

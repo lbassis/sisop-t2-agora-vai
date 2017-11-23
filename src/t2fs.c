@@ -82,14 +82,17 @@ FILE2 open2 (char *filename) {
   struct t2fs_record dummy_rec;
 
   dummy_rec.TypeVal = 1;
-  strcpy(dummy_rec.name, "dummy_file.txt");
+  strcpy(dummy_rec.name, filename);
   dummy_rec.bytesFileSize = 100;
   dummy_rec.firstCluster = 4;
+
+  int handler_available = get_fisrt_handler_available(open_files, MAX_ITEMS_IN_OPEN_LIST);
+  printf("\n=====\n\nhandler to add: %i\n\n", handler_available);
 
   GENERIC_FILE dummy_generic_file;
 
   dummy_generic_file.record = dummy_rec;
-  dummy_generic_file.handler = 0;//get_first_empty_handler();
+  dummy_generic_file.handler = handler_available;
   dummy_generic_file.pointer = 0;
 
   // insere o arquivo
@@ -99,7 +102,7 @@ FILE2 open2 (char *filename) {
 
   // printf("\nAdded file: %s", dummy.name);
   print_records(open_files);
-  printf("\nList length: %i\n\n", length);
+  printf("\nList length: %i\n", length);
 
   return 0;
 }
@@ -112,10 +115,12 @@ int close2 (FILE2 handle) {
 
   int length = list_length(open_files);
 
-  if (handle < 0 || handle >= length) {
+  if (handle < 0 || handle >= MAX_ITEMS_IN_OPEN_LIST) {
     printf("handle fora dos limites ou sei lá, man\n");
     return -1;
   }
+
+  printf("\n=====\n\nhandler to remove: %i\n\n", handle);
 
   // print_records(open_files);
   // length = list_length(open_files);
@@ -127,8 +132,10 @@ int close2 (FILE2 handle) {
   }
 
   length = list_length(open_files);
+
+  // printf("\nAdded file: %s", dummy.name);
   print_records(open_files);
-  printf("\nList length: %i\n\n", length);
+  printf("\nList length: %i\n", length);
 
   return 0;
 }
