@@ -57,8 +57,8 @@ struct t2fs_record *find_record(RECORDS_LIST *list, char *name) {
 
     while (aux != NULL) {
         //printf("comparando %s com %s\n", aux->record.name, name);
-        if (strcmp(aux->record.name, name) == 0) {
-            return &(aux->record);
+        if (strcmp(aux->generic_file.record.name, name) == 0) {
+            return &(aux->generic_file.record);
         }
         aux = aux->next;
     }
@@ -94,19 +94,20 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
   int i = 0;
   int number_of_records = CLUSTER_SIZE / sizeof(struct t2fs_record);
   unsigned char buffer[CLUSTER_SIZE];
-  struct t2fs_record record;
+  // struct t2fs_record record;
+  GENERIC_FILE generic_file;
 
   *records = newList();
 
   read_cluster(cluster_index, buffer);
 
   for (i = 0; i < number_of_records; i++) {
-    int offset = sizeof(struct t2fs_record) * i;
+    int offset = sizeof(GENERIC_FILE) * i;
 
-    record = read_record(buffer, offset);
+    generic_file.record = read_record(buffer, offset);
     // Aqui deve inserir o record na lista SE E SOMENTE SE o TypeVal dele não for 0
-    if (record.TypeVal != 0) {
-      insert_record(records, record);
+    if (generic_file.record.TypeVal != 0) {
+      insert_record(records, generic_file);
     }
   }
   //printf("\n\n");
@@ -119,7 +120,8 @@ int get_initial_cluster_from_path(char *path) {
     int root_cluster = 2; // TEM QUE ARRUMAR ///////////////////////////////////////
 
     RECORDS_LIST *directory;
-    struct t2fs_record current_record;
+    GENERIC_FILE current_generic_file;
+    // struct t2fs_record current_record;
     char *buffer, *pathCopy;
     int current_initial_cluster = root_cluster;
 
@@ -133,8 +135,8 @@ int get_initial_cluster_from_path(char *path) {
 
     while (buffer != NULL) {
          if (find_record(directory, buffer) != NULL) { // acha o record com esse nome
-            current_record = *find_record(directory, buffer);
-            current_initial_cluster = get_record_initial_cluster(current_record); // pega o inicio do cluster desse diret
+            current_generic_file.record = *find_record(directory, buffer);
+            current_initial_cluster = get_record_initial_cluster(current_generic_file.record); // pega o inicio do cluster desse diret
             destroy_list(&directory); // limpa a lista
             read_all_records(current_initial_cluster, &directory); // recomeça a parada
             buffer = strtok(NULL, "/");

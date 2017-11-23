@@ -4,7 +4,7 @@ RECORDS_LIST *newList() {
   return NULL;
 }
 
-void insert_record(RECORDS_LIST **q, struct t2fs_record record) {
+void insert_record(RECORDS_LIST **q, GENERIC_FILE generic_file) {
 
   RECORDS_LIST *aux;
   RECORDS_LIST *new;
@@ -12,7 +12,7 @@ void insert_record(RECORDS_LIST **q, struct t2fs_record record) {
   aux = *q;
 
   new = malloc(sizeof(RECORDS_LIST));
-  new->record = record;
+  new->generic_file = generic_file;
   new->next = NULL;
 
 
@@ -35,7 +35,7 @@ void print_records(RECORDS_LIST *q) {
 
   printf("Printing list:\n");
   while (aux != NULL) {
-    printf("%s\n", aux->record.name);
+    printf("%s\n", aux->generic_file.record.name);
     aux = aux->next;
   }
 }
@@ -54,7 +54,7 @@ void destroy_list(RECORDS_LIST **q) {
 }
 
 int list_length(RECORDS_LIST *q) {
-  
+
   RECORDS_LIST *aux;
   aux = q;
   int len = 0;
@@ -63,52 +63,50 @@ int list_length(RECORDS_LIST *q) {
     len ++;
     aux = aux->next;
   }
-  
+
   return len;
 }
 
-struct t2fs_record *get_record_at_index(RECORDS_LIST *q, int index) {
-  
+GENERIC_FILE *get_record_at_index(RECORDS_LIST *q, int index) {
+
   RECORDS_LIST *aux;
   aux = q;
   int i = 0, found = 0;
 
   while (aux != NULL) {
     if (i == index) {
-      return &(aux->record);
+      return &(aux->generic_file);
     }
-    
+
     i ++;
     aux = aux->next;
   }
-  
+
   return NULL;
 }
 
-int remove_record_at_index(RECORDS_LIST **q, int index) {
-  
+int remove_record_at_index(RECORDS_LIST **q, int handler_to_remove) {
+
   RECORDS_LIST *aux, *next, *prev;
   aux = *q;
-  int i = 0, found = 0;
-  
+
   prev = aux;
-  
+
   while (aux != NULL) {
-    if (i == index) {
-      if (prev == aux) {
-        *q = aux->next;
-      } else {
-        prev->next = aux->next;
-      }
-      
-      free(aux);
-      return 0;
-    }
-    
-    i ++;
+     if (aux->generic_file.handler == handler_to_remove) {
+         if (prev == aux) {
+           *q = aux->next;
+         } else {
+           prev->next = aux->next;
+         }
+
+         free(aux);
+         return 0;
+     }
+
     prev = aux;
     aux = aux->next;
   }
-  
+
   return -1;
 }
