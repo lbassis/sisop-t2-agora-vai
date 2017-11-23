@@ -52,7 +52,6 @@ int get_record_initial_cluster(struct t2fs_record record) {
 
 struct t2fs_record *find_record(RECORDS_LIST *list, char *name) {
 
-
     RECORDS_LIST *aux = list;
 
     while (aux != NULL) {
@@ -128,8 +127,6 @@ int get_initial_cluster_from_path(char *path) {
     pathCopy = malloc(sizeof(strlen(path)));
     strcpy(pathCopy, path);
 
-
-
     read_all_records(root_cluster, &directory);
     buffer = strtok(pathCopy, DELIM);
 
@@ -197,3 +194,80 @@ unsigned int first_empty_cluster() {
     }
 
 }
+
+char *get_filename_path(char *path) {
+    if (strcmp(path, "/") == 0) {
+        return path;
+    }
+
+    char *buffer, *pathCopy, *filename;
+
+    pathCopy = malloc(sizeof(strlen(path)));
+    strcpy(pathCopy, path);
+
+    buffer = strtok(pathCopy, "/");
+
+    while(buffer != NULL) {
+        filename = buffer;
+
+        printf("%s\n", buffer);
+        buffer = strtok(NULL, "/");
+    }
+
+    return filename;
+}
+
+char *get_father_dir_path(char *path) {
+    printf("\n\n\n\n\n");
+    if (strcmp(path, "/") == 0) {
+        return path;
+    }
+
+    char *buffer, *pathCopy, *father;
+    int levels = 0;
+
+    pathCopy = malloc(sizeof(strlen(path)));
+    father = malloc(sizeof(strlen(path)));
+
+    strcpy(pathCopy, path);
+
+    buffer = strtok(pathCopy, "/");
+
+    char result[100] = "/";
+    char current[100] = "";
+    char previous[100] = "";
+
+    while(buffer != NULL) {
+        strcpy(current, buffer);
+
+        buffer = strtok(NULL, "/");
+
+        if (buffer != NULL) {
+            strcpy(current, buffer);
+            strcpy(previous, current);
+        }
+
+        // strcat(result, buffer);
+        strcpy(previous, buffer);
+        strcat(result, "/");
+
+        printf("BUFFER: %s\n", buffer);
+        printf("PREVIOUS: %s\n", previous);
+
+        buffer = strtok(NULL, "/");
+        levels += 1;
+    }
+
+    // printf("RESULT: %s\n", result);
+
+    if (levels <= 1) {
+        return "/";
+    }
+
+
+    // printf("LEVELS: %i\n", levels);
+    father = result;
+
+    return ".......";
+}
+

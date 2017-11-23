@@ -35,4 +35,6 @@ unsigned int first_empty_cluster();
 
 void ls();
 
+char *get_father_dir_path(char *path);
+
 #endif
