@@ -26,4 +26,13 @@ void print_sector(int sector);
 void print_cluster(char *buffer);
 void print_record(struct t2fs_record record);
 
+struct t2fs_record *find_record(RECORDS_LIST *list, char *name);
+int get_record_initial_cluster(struct t2fs_record record);
+
+int get_initial_cluster_from_path(char *path);
+
+unsigned int first_empty_cluster();
+
+void ls();
+
 #endif

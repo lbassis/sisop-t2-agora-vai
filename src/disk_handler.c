@@ -158,3 +158,40 @@ void ls() {
     RECORDS_LIST *a;
     read_all_records(get_initial_cluster_from_path(current_path), &a);
 }
+
+unsigned int first_empty_cluster() {
+
+    char buffer[SECTOR_SIZE];
+    int i = 0, j, k;
+    int zeroes, found = 0;
+
+    int fat_sectors = 128; //dataSectorStart - fatSectorStart
+    int first_sector = 1; //superblock.fat_sector_start
+
+    while (i < 1 && !found) {  // enquanto tiver setores e nao tiver achado um livre
+        read_sector(first_sector+i, buffer);
+
+        // aqui tem que ler de 4 em 4 chars pra ver se acha um só de 0s
+        j = 0;
+        while (j < fat_sectors/4) { // numero de valores associados a cluster
+            k = 0;
+            zeroes = 0; // numero de 0s encontrados
+            printf("testando o cluster %d\n", i+j);
+            while (k < 4) { // cada cluster tem 8 chars
+                printf("%hhx ", buffer[j*4+k]);
+                if (buffer[j*4+k] == 0) {
+                    zeroes++;
+                }
+                k++;
+            }
+            printf("\n");
+            if (zeroes == 4) { // tudo zerado retorna o cluster que é assim
+                printf("achou 4 zeros no %d\n", i+j);
+                return first_sector+i+j; // substituir isso por current_sector
+            }
+            j++;
+        }
+        i++;
+    }
+
+}
