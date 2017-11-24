@@ -36,6 +36,9 @@ clean:
 	@rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/*.o $(SRC_DIR)/*~ $(INC_DIR)/*~ *~
 	@mv $(TEST_DIR)/apidisk.o $(BIN_DIR)/apidisk.o
 
+reset_disk:
+	git checkout t2fs_disk.dat
+
 assis:
 	@cat lucas.txt
 

@@ -107,6 +107,7 @@ FILE2 create2 (char *filename) {
   printf("\nList length: %i\n", length);
   
   // falta escrever as entradas do diretorio pai de volta pro seu cluster
+  write_list_of_records_to_cluster(files_in_father_dir, cluster_index);
 }
 
 int delete2 (char *filename) {

@@ -267,3 +267,15 @@ char *get_father_dir_path(char *path) {
 
     return father;
 }
+
+int write_cluster(int cluster_index, char *buffer) {
+  // faz a mágica aqui
+  return 0;
+}
+
+int write_list_of_records_to_cluster(RECORDS_LIST *list, int cluster_index) {
+  // 1. transforma de lista pra string (bota tudo num buffer)
+  // 2. chama write_cluster(cluster_index, buffer);
+  // 3. acho que é isso
+  return 0;
+}
