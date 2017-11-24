@@ -167,7 +167,49 @@ int read2 (FILE2 handle, char *buffer, int size) {
   return 0;
 }
 
-int write2 (FILE2 handle, char *buffer, int size) {}
+int write2 (FILE2 handle, char *buffer, int size) {
+
+  // início padrão procurando pelo handler na lista de abertos
+
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
+
+  int length = list_length(open_files);
+
+  if (handle < 0 || handle >= MAX_ITEMS_IN_OPEN_LIST) {
+    printf("handle out of range\n");
+    return -1;
+  }
+
+  printf("\n=====\n\nhandler to write: %i\n\n", handle);
+
+  struct t2fs_record *rec;
+  rec = (struct t2fs_record *) get_record_at_index(open_files, 0);
+
+  if (rec == NULL) {
+    printf("O handle %i n existe\n", handle);
+    return -1;
+  }
+
+  // fim do "início padrão"
+
+  // 1. enquanto initialCluster != ff ff ff ff
+  // 2.    2.1 proxCluster <- entrada do initialCluster na fat
+  //       2.2 quando proxCluster for == ff ff ff ff
+  // 3.   se houver algum setor livre no cluster:
+  //      3.1 escreve 256 bytes do buffer no setor livre
+  //      3.2 desconta 256 bytes do local_buffer
+  //      3.3 checa o próximo setor do clusters
+  //      3.4 se houver setor livre, volta para 3.1 senão
+  // 4. aloca um cluster novo, encadeia e cluster novo = EOF
+  // 5. vá_para 3
+  // 6. se buffer não possui mais bytes a serem escritos, retorna 0
+
+
+
+}
 
 int truncate2 (FILE2 handle) {
 
@@ -196,39 +238,39 @@ int mkdir2 (char *pathname) {
   // pra testes apenas
   // printf("\n=======\n\npath: \t%s\n", pathname);
   // printf("father:\t%s\n\n", get_father_dir_path(pathname));
-  
+
   char *filename = malloc(sizeof(pathname));
   char *father_path = malloc(sizeof(pathname));
-  
+
   father_path = get_father_dir_path(pathname);
   filename = get_filename_from_path(pathname);
-  
+
   printf("father: %s\n", father_path);
-  
+
   printf("will get cluster index\n");
   int cluster_index = get_initial_cluster_from_path(father_path);
-  
+
   printf("cluster index: %i\n", cluster_index);
-  
+
   RECORDS_LIST *files_in_father_dir = newList();
   read_all_records(cluster_index, &files_in_father_dir);
-  
+
   struct t2fs_record *record;
   record = find_record(files_in_father_dir, filename);
-  
+
   if (record == NULL) {
     printf("Erro ao pegar record do arquivo %s\n", filename);
     return -1;
   }
-  
+
   print_records(files_in_father_dir);
   print_record(*record);
-  
+
 
   // considerando que vai criar sempre no current_path (nao pode incluir path no nome do diretorio):
 
   // 1. encontra o primeiro cluster livre e atribui a ele ff ff ff ff
-  // 2. abre o diretorio do current path
+  // 2. abre o diretor  io do current path
   // 2.1 se nao encontrar -> erro
   // 3. adiciona a nova entrada ao diretorio: typeval = 2, name = filename, bytesfilesize = 0, firstcluster = valor encontrado em 1.
   // 4. fecha o diretorio
@@ -256,8 +298,27 @@ int chdir2 (char *pathname) {
 
 int getcwd2 (char *pathname, int size) {}
 
-DIR2 opendir2 (char *pathname) {}
+DIR2 opendir2 (char *pathname) {
+
+  /*
+  1. abre o diretório do current path
+  2. lê o registro com name == filename
+      2.1 se não encontrar := erro
+  3. encontra a entrada da firstCluster na fat
+  4. posiciona o ponteiro de entradas(current) no firstCluster
+  5. retorna handle(identificador)
+  */
+}
 
 int readdir2 (DIR2 handle, DIRENT2 *dentry) {}
 
-int closedir2 (DIR2 handle) {}
+int closedir2 (DIR2 handle) {
+  /*
+   1. encontra o arquivo com handle == handle na lista de arquivos abertos
+   1.2 se nao encontrar -> erro
+   2. encontra o cluster onde se encontra o ponteiro do record
+   3. initialCluster <- entrada na fat do cluster encontrado em 2
+   4. tira handle da lista de arquivos abertos
+   5. free ponteiro record ??? ???
+  */
+}
