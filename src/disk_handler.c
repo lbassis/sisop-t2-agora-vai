@@ -77,7 +77,7 @@ void read_cluster(int cluster_index, char *buffer) {
   int i = 0, j = 0, offset = 0;
   int first_sector = DATA_SECTOR_START + (cluster_index * SECTORS_PER_CLUSTER);
   unsigned char local_buffer[256];
-  
+
   printf("before DO\n");
 
   do {
@@ -86,7 +86,7 @@ void read_cluster(int cluster_index, char *buffer) {
     for (j = 0; j < sizeof(local_buffer); j++) {
       buffer[j + offset] = local_buffer[j];
     }
-    
+
     offset += 256; // b
     i ++;
     } while(i < 4); // sectors per cluster
@@ -98,16 +98,16 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
   unsigned char buffer[CLUSTER_SIZE];
   // struct t2fs_record record;
   GENERIC_FILE generic_file;
-  
+
   printf("dentro da read_all_records\n");
   *records = newList();
-  
+
   printf("vai ler o cluster %i\n", cluster_index);
   read_cluster(cluster_index, buffer);
-  
+
   for (i = 0; i < number_of_records; i++) {
     int offset = sizeof(struct t2fs_record) * i;
-    
+
     generic_file.record = read_record(buffer, offset);
     // Aqui deve inserir o record na lista SE E SOMENTE SE o TypeVal dele não for 0
     if (generic_file.record.TypeVal != 0) {
@@ -130,13 +130,13 @@ int get_initial_cluster_from_path(char *path) {
     char *buffer, *pathCopy;
     int current_initial_cluster = root_cluster;
 
-    pathCopy = malloc(sizeof(strlen(path)));
+    pathCopy = malloc((strlen(path)+1)*sizeof(char));
     strcpy(pathCopy, path);
 
     printf("antes de read_all_records\n");
 
     read_all_records(root_cluster, &directory);
-    
+
     printf("antes do strtok\n");
     buffer = strtok(pathCopy, DELIM);
 
@@ -162,7 +162,7 @@ int get_initial_cluster_from_path(char *path) {
     // RECORDS_LIST *testano;
     // read_all_records(current_initial_cluster, &testano);
     // print_records(testano);
-    
+
     return current_initial_cluster;
 }
 
@@ -215,7 +215,7 @@ char *get_filename_from_path(char *path) {
 
     char *buffer, *pathCopy, *filename;
 
-    pathCopy = malloc(sizeof(strlen(path)));
+    pathCopy = malloc((strlen(path)+1)*sizeof(char));
     strcpy(pathCopy, path);
 
     buffer = strtok(pathCopy, "/");
@@ -232,7 +232,7 @@ char *get_filename_from_path(char *path) {
 
 char *get_father_dir_path(char *path) {
     // printf("\n\n\n\n\n");
-    
+
     if (strcmp(path, "/") == 0) {
         return path;
     }
@@ -240,37 +240,37 @@ char *get_father_dir_path(char *path) {
     char *buffer, *pathCopy, *father;
     int levels = 0;
 
-    pathCopy = malloc(sizeof(strlen(path)));
-    father = malloc(sizeof(strlen(path)));
+    pathCopy = malloc((strlen(path)+1)*sizeof(char));
+    father = malloc((strlen(path)+1)*sizeof(char));
 
     strcpy(pathCopy, path);
-    
+
     buffer = strtok(pathCopy, "/");
 
     char result[100] = "/";
     char current[100] = "/";
-    
+
     // printf("> buffer: %s\n", buffer);
     // printf("> current: %s\n", current);
     // printf("> previous: %s\n\n", previous);
-    
+
     while(buffer != NULL) {
         strcpy(current, buffer);
-        
+
         levels += 1;
         buffer = strtok(NULL, "/");
-        
+
         if (buffer != NULL) {
           strcat(result, current);
           strcat(result, "/");
-          
+
           strcpy(current, buffer);
-          
+
         } else {
           break;
         }
     }
-    
+
     if (levels <= 1) {
         return "/";
     }

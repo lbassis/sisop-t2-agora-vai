@@ -19,11 +19,11 @@ all: clean compile_to_object_file generate_static_library
 
 compile_to_object_file:
 	@echo "> Compiling object files"
-	@gcc  -g -c $(SRC_DIR)/fat.c -I $(INC_DIR) -o $(BIN_DIR)/fat.o
-	@gcc  -g -c $(SRC_DIR)/superblock.c -I $(INC_DIR) -o $(BIN_DIR)/superblock.o
-	@gcc  -g -c $(SRC_DIR)/disk_handler.c -I $(INC_DIR) -o $(BIN_DIR)/disk_handler.o
-	@gcc  -g -c $(SRC_DIR)/records_list.c -I $(INC_DIR) -o $(BIN_DIR)/records_list.o
-	@gcc  -g -c $(SRC_DIR)/t2fs.c -I $(INC_DIR) -o $(BIN_DIR)/t2fs.o
+	@gcc  -g -ggdb -c $(SRC_DIR)/fat.c -I $(INC_DIR) -o $(BIN_DIR)/fat.o
+	@gcc  -g -ggdb -c $(SRC_DIR)/superblock.c -I $(INC_DIR) -o $(BIN_DIR)/superblock.o
+	@gcc  -g -ggdb -c $(SRC_DIR)/disk_handler.c -I $(INC_DIR) -o $(BIN_DIR)/disk_handler.o
+	@gcc  -g -ggdb -c $(SRC_DIR)/records_list.c -I $(INC_DIR) -o $(BIN_DIR)/records_list.o
+	@gcc  -g -ggdb -c $(SRC_DIR)/t2fs.c -I $(INC_DIR) -o $(BIN_DIR)/t2fs.o
 
 generate_static_library:
 	@echo "> Generating static library"
@@ -40,8 +40,9 @@ assis:
 	@cat lucas.txt
 
 run:
-	@gcc -g $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/main
+	@gcc -g -ggdb $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/main
 	@./$(TEST_DIR)/main
 
 valgrindo_run:
+	@gcc -g -ggdb $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/main
 	@valgrind $(TEST_DIR)/main

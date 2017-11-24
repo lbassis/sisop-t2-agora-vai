@@ -1,0 +1,426 @@
+diff --git a/include/records_list.h b/include/records_list.h
+index 5bd9e01..b13efd7 100644
+--- a/include/records_list.h
++++ b/include/records_list.h
+@@ -6,13 +6,19 @@
+ #include <stdlib.h>
+ #include <t2fs.h>
+ 
++typedef struct file_or_dir_record {
++	struct t2fs_record record;
++	int pointer;
++	int handler;
++} GENERIC_FILE;
++
+ typedef struct RECORDS_LIST {
+-  struct t2fs_record record;
++  GENERIC_FILE generic_file;
+   struct RECORDS_LIST *next;
+ } RECORDS_LIST;
+ 
+ RECORDS_LIST *newList();
+-void insert_record(RECORDS_LIST **l, struct t2fs_record record);
++void insert_record(RECORDS_LIST **q, GENERIC_FILE generic_file);
+ void print_records(RECORDS_LIST *q);
+ int list_length(RECORDS_LIST *q);
+ 
+diff --git a/src/disk_handler.c b/src/disk_handler.c
+index 119c2bc..987b678 100644
+--- a/src/disk_handler.c
++++ b/src/disk_handler.c
+@@ -57,8 +57,8 @@ struct t2fs_record *find_record(RECORDS_LIST *list, char *name) {
+ 
+     while (aux != NULL) {
+         //printf("comparando %s com %s\n", aux->record.name, name);
+-        if (strcmp(aux->record.name, name) == 0) {
+-            return &(aux->record);
++        if (strcmp(aux->generic_file.record.name, name) == 0) {
++            return &(aux->generic_file.record);
+         }
+         aux = aux->next;
+     }
+@@ -94,19 +94,20 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
+   int i = 0;
+   int number_of_records = CLUSTER_SIZE / sizeof(struct t2fs_record);
+   unsigned char buffer[CLUSTER_SIZE];
+-  struct t2fs_record record;
++  // struct t2fs_record record;
++  GENERIC_FILE generic_file;
+ 
+   *records = newList();
+ 
+   read_cluster(cluster_index, buffer);
+ 
+   for (i = 0; i < number_of_records; i++) {
+-    int offset = sizeof(struct t2fs_record) * i;
++    int offset = sizeof(GENERIC_FILE) * i;
+ 
+-    record = read_record(buffer, offset);
++    generic_file.record = read_record(buffer, offset);
+     // Aqui deve inserir o record na lista SE E SOMENTE SE o TypeVal dele não for 0
+-    if (record.TypeVal != 0) {
+-      insert_record(records, record);
++    if (generic_file.record.TypeVal != 0) {
++      insert_record(records, generic_file);
+     }
+   }
+   //printf("\n\n");
+@@ -119,7 +120,8 @@ int get_initial_cluster_from_path(char *path) {
+     int root_cluster = 2; // TEM QUE ARRUMAR ///////////////////////////////////////
+ 
+     RECORDS_LIST *directory;
+-    struct t2fs_record current_record;
++    GENERIC_FILE current_generic_file;
++    // struct t2fs_record current_record;
+     char *buffer, *pathCopy;
+     int current_initial_cluster = root_cluster;
+ 
+@@ -133,8 +135,8 @@ int get_initial_cluster_from_path(char *path) {
+ 
+     while (buffer != NULL) {
+          if (find_record(directory, buffer) != NULL) { // acha o record com esse nome
+-            current_record = *find_record(directory, buffer);
+-            current_initial_cluster = get_record_initial_cluster(current_record); // pega o inicio do cluster desse diret
++            current_generic_file.record = *find_record(directory, buffer);
++            current_initial_cluster = get_record_initial_cluster(current_generic_file.record); // pega o inicio do cluster desse diret
+             destroy_list(&directory); // limpa a lista
+             read_all_records(current_initial_cluster, &directory); // recomeça a parada
+             buffer = strtok(NULL, "/");
+diff --git a/src/records_list.c b/src/records_list.c
+index 4a69c77..68fd007 100644
+--- a/src/records_list.c
++++ b/src/records_list.c
+@@ -4,7 +4,7 @@ RECORDS_LIST *newList() {
+   return NULL;
+ }
+ 
+-void insert_record(RECORDS_LIST **q, struct t2fs_record record) {
++void insert_record(RECORDS_LIST **q, GENERIC_FILE generic_file) {
+ 
+   RECORDS_LIST *aux;
+   RECORDS_LIST *new;
+@@ -12,7 +12,7 @@ void insert_record(RECORDS_LIST **q, struct t2fs_record record) {
+   aux = *q;
+ 
+   new = malloc(sizeof(RECORDS_LIST));
+-  new->record = record;
++  new->generic_file = generic_file;
+   new->next = NULL;
+ 
+ 
+@@ -35,7 +35,7 @@ void print_records(RECORDS_LIST *q) {
+ 
+   printf("Printing list:\n");
+   while (aux != NULL) {
+-    printf("%s\n", aux->record.name);
++    printf("%s\n", aux->generic_file.record.name);
+     aux = aux->next;
+   }
+ }
+@@ -54,7 +54,7 @@ void destroy_list(RECORDS_LIST **q) {
+ }
+ 
+ int list_length(RECORDS_LIST *q) {
+-  
++
+   RECORDS_LIST *aux;
+   aux = q;
+   int len = 0;
+@@ -63,52 +63,50 @@ int list_length(RECORDS_LIST *q) {
+     len ++;
+     aux = aux->next;
+   }
+-  
++
+   return len;
+ }
+ 
+-struct t2fs_record *get_record_at_index(RECORDS_LIST *q, int index) {
+-  
++GENERIC_FILE *get_record_at_index(RECORDS_LIST *q, int index) {
++
+   RECORDS_LIST *aux;
+   aux = q;
+   int i = 0, found = 0;
+ 
+   while (aux != NULL) {
+     if (i == index) {
+-      return &(aux->record);
++      return &(aux->generic_file);
+     }
+-    
++
+     i ++;
+     aux = aux->next;
+   }
+-  
++
+   return NULL;
+ }
+ 
+-int remove_record_at_index(RECORDS_LIST **q, int index) {
+-  
++int remove_record_at_index(RECORDS_LIST **q, int handler_to_remove) {
++
+   RECORDS_LIST *aux, *next, *prev;
+   aux = *q;
+-  int i = 0, found = 0;
+-  
++
+   prev = aux;
+-  
++
+   while (aux != NULL) {
+-    if (i == index) {
+-      if (prev == aux) {
+-        *q = aux->next;
+-      } else {
+-        prev->next = aux->next;
+-      }
+-      
+-      free(aux);
+-      return 0;
+-    }
+-    
+-    i ++;
++     if (aux->generic_file.handler == handler_to_remove) {
++         if (prev == aux) {
++           *q = aux->next;
++         } else {
++           prev->next = aux->next;
++         }
++
++         free(aux);
++         return 0;
++     }
++
+     prev = aux;
+     aux = aux->next;
+   }
+-  
++
+   return -1;
+ }
+diff --git a/src/t2fs.c b/src/t2fs.c
+index 172e575..4f33964 100644
+--- a/src/t2fs.c
++++ b/src/t2fs.c
+@@ -9,7 +9,7 @@ int has_initialized = 0;
+ void init() {
+   current_path = malloc(sizeof(int));
+   current_path[0] = '/';
+-    
++
+   open_files = newList();
+   open_dirs = newList();
+ }
+@@ -19,7 +19,7 @@ int identify2 (char *name, int size) {
+     init();
+     has_initialized = 1;
+   }
+-  
++
+   // apenas por motivo de teste, aqui tem chamadas às funções do superblock.c
+   // printf("\n== Printando diretamente do identify2 ==s\n");
+   // diskId();
+@@ -66,33 +66,41 @@ FILE2 open2 (char *filename) {
+     init();
+     has_initialized = 1;
+   }
+-  
++
+   int length = list_length(open_files);
+-  
++
+   if (length >= MAX_ITEMS_IN_OPEN_LIST) {
+     printf("\n=======\nLista com nro máximo de elementos, man\n=======\n");
+     return -1;
+   }
+-  
++
+   // aqui tem que ver se o arquivo com este filename existe
+   // se não existir, erro!
+   // se existir, pega a entrada dele
+-  
++
+   // criando um arquivo dummy
+-  struct t2fs_record dummy;
+-  
+-  dummy.TypeVal = 1;
+-  strcpy(dummy.name, "dummy_file.txt");
+-  dummy.bytesFileSize = 100;
+-  dummy.firstCluster = 4;
+-  
++  struct t2fs_record dummy_rec;
++
++  dummy_rec.TypeVal = 1;
++  strcpy(dummy_rec.name, "dummy_file.txt");
++  dummy_rec.bytesFileSize = 100;
++  dummy_rec.firstCluster = 4;
++
++  GENERIC_FILE dummy_generic_file;
++
++  dummy_generic_file.record = dummy_rec;
++  dummy_generic_file.handler = 0;//get_first_empty_handler();
++  dummy_generic_file.pointer = 0;
++
+   // insere o arquivo
+-  insert_record(&open_files, dummy);
+-  
++  insert_record(&open_files, dummy_generic_file);
++
+   length = list_length(open_files);
++
+   // printf("\nAdded file: %s", dummy.name);
+-  // printf("\nList length: %i\n\n", length);
+-  
++  print_records(open_files);
++  printf("\nList length: %i\n\n", length);
++
+   return 0;
+ }
+ 
+@@ -101,27 +109,27 @@ int close2 (FILE2 handle) {
+     init();
+     has_initialized = 1;
+   }
+-  
++
+   int length = list_length(open_files);
+-  
++
+   if (handle < 0 || handle >= length) {
+     printf("handle fora dos limites ou sei lá, man\n");
+     return -1;
+   }
+-  
++
+   // print_records(open_files);
+   // length = list_length(open_files);
+   // printf("\nList length: %i\n\n", length);
+-  
++
+   if (remove_record_at_index(&open_files, handle) != 0) {
+     printf("Erro ao fechar arquivo %i\n", handle);
+     return -1;
+   }
+-  
+-  // print_records(open_files);
+-  // length = list_length(open_files);
+-  // printf("\nList length: %i\n\n", length);
+-  
++
++  length = list_length(open_files);
++  print_records(open_files);
++  printf("\nList length: %i\n\n", length);
++
+   return 0;
+ }
+ 
+@@ -130,25 +138,25 @@ int read2 (FILE2 handle, char *buffer, int size) {
+     init();
+     has_initialized = 1;
+   }
+-  
++
+   if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
+     printf("handle fora dos limites, man\n");
+     return -1;
+   }
+   struct t2fs_record *rec;
+   rec = (struct t2fs_record *) get_record_at_index(open_files, 0);
+-  
++
+   if (rec == NULL) {
+     printf("O handle %i non ecziste\n", handle);
+     return -1;
+   }
+-  
++
+   // achou o arquivos
+   printf("Reading %s\n", rec->name);
+-  
++
+   // aqui falta colocar o conteúdo do arquivo no buffer, creio eu
+   // (ler "size" bytes a partir do current_pointer)
+-  
++
+   return 0;
+ }
+ 
+diff --git a/testes/main.c b/testes/main.c
+index e3d9757..fc2bb44 100644
+--- a/testes/main.c
++++ b/testes/main.c
+@@ -5,31 +5,44 @@
+ #include <disk_handler.h>
+ #include <fat.h>
+ 
+-int main() {
+-  // int i;
+-  // for (i = 0; i < 11; i++) {
+-  //   open2(NULL);
+-  // }
+-  
+-  // open2(NULL);
+-  // open2(NULL);
+-  // open2(NULL);
+-  //
+-  // close2(0);
+-
+-  int i;
++// int main() {
++//   // int i;
++//   // for (i = 0; i < 11; i++) {
++//   //   open2(NULL);
++//   // }
++//
++//   // open2(NULL);
++//   // open2(NULL);
++//   // open2(NULL);
++//   //
++//   // close2(0);
++//
++//   int i;
++//
++//   init();
++//   for (i = 0; i < 10; i++) {
++//     int value = read_fat_entry(i);
++//     printf("\nindex: %i\nvalue: %hhx\n", i, value);
++//   }
++//
++//   //get_initial_cluster_from_path("/dir1");
++//   // ls();
++//   //chdir2("dir1");
++//   //ls();
++//   printf("%d\n", first_empty_cluster());
++//
++//   return 0;
++// }
+ 
+-  init();
+-  for (i = 0; i < 10; i++) {
+-    int value = read_fat_entry(i);
+-    printf("\nindex: %i\nvalue: %hhx\n", i, value);
+-  }
+-
+-  //get_initial_cluster_from_path("/dir1");
+-  // ls();
+-  //chdir2("dir1");
+-  //ls();
+-  printf("%d\n", first_empty_cluster());
++//
++// testando lista de GENERIC_FILE
++//
++int main() {
++    open2(NULL);
++    open2(NULL);
++    open2(NULL);
+ 
+-  return 0;
+-}
++    close2(0);
++    
++    return 0;
++}
+\ No newline at end of file
