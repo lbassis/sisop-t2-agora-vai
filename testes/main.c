@@ -49,6 +49,9 @@ int main() {
 
     // open2("/dir1/file1.txt");
     
+    int handle = open2("/dir1/file1.txt");
+    close2(handle);
+    
     printf("\n");
 
     return 0;

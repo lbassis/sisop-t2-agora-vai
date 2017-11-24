@@ -124,6 +124,7 @@ FILE2 open2 (char *filename) {
   return 0;
 }
 
+
 int close2 (FILE2 handle) {
   if (!has_initialized) {
     init();
@@ -137,23 +138,11 @@ int close2 (FILE2 handle) {
     return -1;
   }
 
-  printf("\n=====\n\nhandler to remove: %i\n\n", handle);
-
-  // print_records(open_files);
-  // length = list_length(open_files);
-  // printf("\nList length: %i\n\n", length);
-
   if (remove_record_at_index(&open_files, handle) != 0) {
     printf("Erro ao fechar arquivo %i\n", handle);
     return -1;
   }
-
-  length = list_length(open_files);
-
-  // printf("\nAdded file: %s", dummy.name);
-  print_records(open_files);
-  printf("\nList length: %i\n", length);
-
+  
   return 0;
 }
 
@@ -162,21 +151,21 @@ int read2 (FILE2 handle, char *buffer, int size) {
     init();
     has_initialized = 1;
   }
-
-  if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
-    printf("handle fora dos limites, man\n");
-    return -1;
-  }
-  struct t2fs_record *rec;
-  rec = (struct t2fs_record *) get_record_at_index(open_files, 0);
-
-  if (rec == NULL) {
-    printf("O handle %i non ecziste\n", handle);
-    return -1;
-  }
-
-  // achou o arquivos
-  printf("Reading %s\n", rec->name);
+//
+//   if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
+//     printf("handle fora dos limites, man\n");
+//     return -1;
+//   }
+//   struct t2fs_record *rec;
+//   rec = (struct t2fs_record *) get_record_at_index(open_files, 0);
+//
+//   if (rec == NULL) {
+//     printf("O handle %i non ecziste\n", handle);
+//     return -1;
+//   }
+//
+//   // achou o arquivos
+//   printf("Reading %s\n", rec->name);
 
   // aqui falta colocar o conteúdo do arquivo no buffer, creio eu
   // (ler "size" bytes a partir do current_pointer)
