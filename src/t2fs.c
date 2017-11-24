@@ -68,39 +68,56 @@ FILE2 open2 (char *filename) {
   }
 
   int length = list_length(open_files);
-
+  
+  // confere se ainda tem espaço na lista
   if (length >= MAX_ITEMS_IN_OPEN_LIST) {
     printf("\n=======\nLista com nro máximo de elementos, man\n=======\n");
     return -1;
   }
+  
+  // se chegou aqui, pode colocar na lista
+  
+  char *filename_without_path = malloc(sizeof(filename));
+  char *father_path = malloc(sizeof(filename));
+  
+  father_path = get_father_dir_path(filename);
+  filename_without_path = (char *) get_filename_from_path(filename);
+  
+  int cluster_index = get_initial_cluster_from_path(father_path);
 
-  // aqui tem que ver se o arquivo com este filename existe
-  // se não existir, erro!
-  // se existir, pega a entrada dele
-
-  // criando um arquivo dummy
-  struct t2fs_record dummy_rec;
-
-  dummy_rec.TypeVal = 1;
-  strcpy(dummy_rec.name, filename);
-  dummy_rec.bytesFileSize = 100;
-  dummy_rec.firstCluster = 4;
-
+  // pega lista de entradas do diretório pai do arquivo em questão
+  RECORDS_LIST *files_in_father_dir = newList();
+  read_all_records(cluster_index, &files_in_father_dir);
+  
+  struct t2fs_record *record;
+  record = find_record(files_in_father_dir, filename_without_path);
+  
+  if (record == NULL) {
+    printf("Erro ao pegar record do arquivo %s\n", filename_without_path);
+    return -1;
+  }
+  
   int handler_available = get_fisrt_handler_available(open_files, MAX_ITEMS_IN_OPEN_LIST);
-  printf("\n=====\n\nhandler to add: %i\n\n", handler_available);
-
-  GENERIC_FILE dummy_generic_file;
-
-  dummy_generic_file.record = dummy_rec;
-  dummy_generic_file.handler = handler_available;
-  dummy_generic_file.pointer = 0;
-
+  
+  // provavelmente não vai cair aqui pois se não tem espaço na lista já deve ter caído fora
+  // mas é bom garantir..
+  if (handler_available < 0) {
+    printf("Erro: todos handles estão ocupados\n");
+    return -1;
+  }
+  
+  // cria um elemento pra botar na lista
+  GENERIC_FILE generic_file;
+  generic_file.record = *record;
+  generic_file.handler = handler_available;
+  generic_file.pointer = 0;
+  
   // insere o arquivo
-  insert_record(&open_files, dummy_generic_file);
+  insert_record(&open_files, generic_file);
 
   length = list_length(open_files);
 
-  // printf("\nAdded file: %s", dummy.name);
+  printf("\n===== open files =====\n");
   print_records(open_files);
   printf("\nList length: %i\n", length);
 
@@ -243,7 +260,7 @@ int mkdir2 (char *pathname) {
   char *father_path = malloc(sizeof(pathname));
 
   father_path = get_father_dir_path(pathname);
-  filename = get_filename_from_path(pathname);
+  filename = (char *) get_filename_from_path(pathname);
 
   printf("father: %s\n", father_path);
 
@@ -265,7 +282,6 @@ int mkdir2 (char *pathname) {
 
   print_records(files_in_father_dir);
   print_record(*record);
-
 
   // considerando que vai criar sempre no current_path (nao pode incluir path no nome do diretorio):
 

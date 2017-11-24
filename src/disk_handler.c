@@ -78,10 +78,7 @@ void read_cluster(int cluster_index, char *buffer) {
   int first_sector = DATA_SECTOR_START + (cluster_index * SECTORS_PER_CLUSTER);
   unsigned char local_buffer[256];
 
-  printf("before DO\n");
-
   do {
-    printf("will read sector %i\n", first_sector + i);
     read_sector(first_sector + i, local_buffer);
     for (j = 0; j < sizeof(local_buffer); j++) {
       buffer[j + offset] = local_buffer[j];
@@ -99,10 +96,8 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
   // struct t2fs_record record;
   GENERIC_FILE generic_file;
 
-  printf("dentro da read_all_records\n");
   *records = newList();
 
-  printf("vai ler o cluster %i\n", cluster_index);
   read_cluster(cluster_index, buffer);
 
   for (i = 0; i < number_of_records; i++) {
@@ -111,7 +106,6 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
     generic_file.record = read_record(buffer, offset);
     // Aqui deve inserir o record na lista SE E SOMENTE SE o TypeVal dele não for 0
     if (generic_file.record.TypeVal != 0) {
-      printf("achei o arquivo %s\n", generic_file.record.name);
       insert_record(records, generic_file);
     }
   }
@@ -121,7 +115,6 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
 }
 
 int get_initial_cluster_from_path(char *path) {
-    printf("entrou na get_initial_cluster_from_path\n");
     int root_cluster = 2; // TEM QUE ARRUMAR ///////////////////////////////////////
 
     RECORDS_LIST *directory;
@@ -133,14 +126,9 @@ int get_initial_cluster_from_path(char *path) {
     pathCopy = malloc((strlen(path)+1)*sizeof(char));
     strcpy(pathCopy, path);
 
-    printf("antes de read_all_records\n");
-
     read_all_records(root_cluster, &directory);
 
-    printf("antes do strtok\n");
     buffer = strtok(pathCopy, DELIM);
-
-    printf("logo antes do while\n");
 
     while (buffer != NULL) {
          if (find_record(directory, buffer) != NULL) { // acha o record com esse nome
@@ -223,7 +211,6 @@ char *get_filename_from_path(char *path) {
     while(buffer != NULL) {
         filename = buffer;
 
-        printf("%s\n", buffer);
         buffer = strtok(NULL, "/");
     }
 
