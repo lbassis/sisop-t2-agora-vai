@@ -193,7 +193,37 @@ int seek2 (FILE2 handle, unsigned int offset) {
 }
 
 int mkdir2 (char *pathname) {
-
+  // pra testes apenas
+  // printf("\n=======\n\npath: \t%s\n", pathname);
+  // printf("father:\t%s\n\n", get_father_dir_path(pathname));
+  
+  char *filename = malloc(sizeof(pathname));
+  char *father_path = malloc(sizeof(pathname));
+  
+  father_path = get_father_dir_path(pathname);
+  filename = get_filename_from_path(pathname);
+  
+  printf("father: %s\n", father_path);
+  
+  printf("will get cluster index\n");
+  int cluster_index = get_initial_cluster_from_path(father_path);
+  
+  printf("cluster index: %i\n", cluster_index);
+  
+  RECORDS_LIST *files_in_father_dir = newList();
+  read_all_records(cluster_index, &files_in_father_dir);
+  
+  struct t2fs_record *record;
+  record = find_record(files_in_father_dir, filename);
+  
+  if (record == NULL) {
+    printf("Erro ao pegar record do arquivo %s\n", filename);
+    return -1;
+  }
+  
+  print_records(files_in_father_dir);
+  print_record(*record);
+  
 
   // considerando que vai criar sempre no current_path (nao pode incluir path no nome do diretorio):
 

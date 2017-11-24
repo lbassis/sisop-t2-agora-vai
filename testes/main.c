@@ -47,13 +47,14 @@ int main() {
     // open2("jorge");
     // open2("tua_voh");
 
-    mkdir2("/");
-    mkdir2("/dir1/");
-    mkdir2("/dir1/dirDOIS");
-    mkdir2("/dir1/dirDOIS/");
-    mkdir2("/a/b/c/d");
-
-    mkdir2("/dir1/dir2/dir3/dir4");
+    // mkdir2("/dir1");
+    mkdir2("/dir1/file1.txt");
+    // mkdir2("/dir1/");
+    // mkdir2("/dir1/dirDOIS");
+    // mkdir2("/dir1/dirDOIS/");
+    // mkdir2("/a/b/c/d/e");
+    // mkdir2("/dir1/dir2/dir3/dir4");
+    
     printf("\n");
 
     return 0;
