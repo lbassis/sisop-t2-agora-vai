@@ -1,4 +1,8 @@
 #include <records_list.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 RECORDS_LIST *newList() {
   return NULL;
@@ -149,12 +153,37 @@ int get_fisrt_handler_available(RECORDS_LIST *list, int list_max_items) {
     return -1;
 }
 
-void dump_list(RECORDS_LIST *list, char *buffer) {
-  RECORDS_LIST *aux;
-  aux = list;
+struct t2fs_record *create_record(BYTE typeVal, char *name, DWORD bytesFileSize, DWORD firstCluster) {
+  struct t2fs_record *record = malloc(sizeof(struct t2fs_record));
+  
+  record->TypeVal = typeVal; // diretorio
+  strcpy(record->name, name);
+  record->bytesFileSize = bytesFileSize;
+  record->firstCluster = firstCluster;
+  
+  return record;
+}
 
-  while (aux != NULL) {
-    printf("%s\n", aux->generic_file.record.name);
-    aux = aux->next;
-  }
+GENERIC_FILE *create_generic_new_file(struct t2fs_record *record, int handler, int pointer) {
+  GENERIC_FILE *file = malloc(sizeof(GENERIC_FILE));;
+  
+  file->record = *record;
+  file->handler = handler; // bota -1 pq nesse caso nao faz sentido usar o handler
+  file->pointer = pointer;
+  
+  return file;
+}
+
+int create_default_records_in_directory(RECORDS_LIST **list, int self_first_cluster, int father_first_cluster) {
+  // cria record do . e do ..
+  struct t2fs_record *dot_record = (struct t2fs_record *) create_record(2, ".", 0, self_first_cluster);
+  struct t2fs_record *dot_dot_record = (struct t2fs_record *) create_record(2, "..", 0, father_first_cluster);
+  
+  // cria generic files dele também
+  GENERIC_FILE *dot_file = (GENERIC_FILE *) create_generic_new_file(dot_record, -1, 0);
+  GENERIC_FILE *dot_dot_file = (GENERIC_FILE *) create_generic_new_file(dot_dot_record, -1, 0);
+  
+  //insere eles na lista
+  insert_record(list, *dot_file);
+  insert_record(list, *dot_dot_file);
 }

@@ -1,7 +1,6 @@
 #ifndef __disk_handler__
 #define __disk_handler__
 
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

@@ -33,7 +33,7 @@ int read_fat_entry(int index) {
   
   int fat_index_in_sector = index - ((sector_index - 1) * 64);
   int value, offset = fat_index_in_sector * 4;
-  
+  printf("%i => 0x%hhx%hhx%hhx%hhx \t", index, buffer[3 + offset], buffer[2 + offset], buffer[1 + offset], buffer[offset]);
   value = (buffer[3 + offset] << 24 | buffer[2 + offset] << 16 | buffer[1 + offset] << 8 | buffer[0 + offset]);
   
   return value;
@@ -83,8 +83,8 @@ print_fat() {
   
   for (i = FIRST_USABLE_FAT_ENTRY; i < NUMBER_OF_FAT_ENTRIES; i++) {
     fat_entry = read_fat_entry(i);
-    printf("%i: \t", i);
-    printf("%hhx\t", fat_entry);
+    // printf("%i: \t", i);
+    // printf("%hhx\t", fat_entry);
     // printf("%i\t\n\n", fat_entry);
   }
   

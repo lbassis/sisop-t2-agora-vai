@@ -38,36 +38,19 @@
 // testando lista de GENERIC_FILE
 //
 int main() {
-    // open2("file1");
-    // open2("meuzovo");
-    // open2("xunda");
-    //
-    // close2(0);
-    //
-    // open2("jorge");
-    // open2("tua_voh");
+    create2("/carissimo_doidao.txt");
 
-    // open2("/dir1/file1.txt");
+    int handle1 = opendir2("/outro_dir");
+    int handle2 = opendir2("/dir1");
+    int handle3 = opendir2("/meuzovo");
 
-    // int handle = open2("/dir1/file1.txt");
-    // close2(handle);
+    closedir2(handle1);
+    closedir2(handle2);
 
-    //create2("/feitoria_gurizada.txt");
-    // mkdir2("");
-    //init();
-    //chdir2("dir1");
-    //ls();
+    // mkdir2("/outro_dir");
 
-
-
-
-
-
-
-    FILE2 teste = open2("aasd.txt");
-    char buffer[50000];
-    read2(teste, buffer, 50000);
-    printf("%s\n", buffer);
+    // create2("/feitoria_gurizada.txt");
+    // int handle = open2("/feitoria_gurizada.txt");
 
     return 0;
 }
