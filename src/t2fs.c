@@ -1,6 +1,17 @@
 #include <superblock.h>
 #include <t2fs.h>
 #include <disk_handler.h>
+#include <math.h>
+
+// nao sei se isso vai aqui mas azar
+int min(a,b) {
+  int result = (a < b) ? a : b;
+  return result;
+}
+
+
+
+
 
 RECORDS_LIST *open_files;
 RECORDS_LIST *open_dirs;
@@ -58,60 +69,60 @@ FILE2 create2 (char *filename) {
   // 4. fecha o diretorio
 
   // de fato, cria vazio, entao nao precisa mexer no cluster dele
-  
+
   // pega o nome do pai
   char *name = malloc(sizeof(filename));
   char *father_path = malloc(sizeof(filename));
-  
+
   father_path = get_father_dir_path(filename);
   name = (char *) get_filename_from_path(filename);
-  
+
   int cluster_index = get_initial_cluster_from_path(father_path);
 
   // pega lista de entradas do diretório pai do arquivo a ser criado
   RECORDS_LIST *files_in_father_dir = newList();
   read_all_records(cluster_index, &files_in_father_dir);
-  
+
   // checa se já existe arquivo com este nome
   if (find_record(files_in_father_dir, name) != NULL) {
     printf("\nErro ao criar %s.\nJá existe um arquivo com este nome neste diretório.\n\n", filename);
     return -1;
   }
-  
+
   // ========== criação do novo elemento da lista ==========
-  
+
   // firstCluster
   int fat_entry = get_first_fat_entry_available();
-  
+
   if (set_fat_entry(fat_entry, -1) == -1 || fat_entry < 0) {
     printf("Erro ao setar fat entry como ff\n");
     return -1;
   }
-  
+
   // cria um record
   struct t2fs_record *record = malloc(sizeof(struct t2fs_record));
   record->TypeVal = 1; // arquivo regular
   strcpy(record->name, name);
-  
+
   record->bytesFileSize = 0;
   record->firstCluster = fat_entry; // index da fat entry alocada pra esse record
-  
+
   // cria um elemento pra botar na lista
   GENERIC_FILE new_file;
   new_file.record = *record;
   new_file.handler = -1; // bota -1 pq nesse caso nao faz sentido usar o handler
   new_file.pointer = 0;
-  
+
   // insere o arquivo
   insert_record(&files_in_father_dir, new_file);
-  
+
   // falta escrever as entradas do diretorio pai de volta pro seu cluster
   write_list_of_records_to_cluster(files_in_father_dir, cluster_index);
-  
+
   // daqui pra baixo é só pra teste mesmo!
   RECORDS_LIST *dir = newList();
   read_all_records(cluster_index, &dir);
-  
+
   print_records(dir);
 }
 
@@ -142,50 +153,50 @@ FILE2 open2 (char *filename) {
   }
 
   int length = list_length(open_files);
-  
+
   // confere se ainda tem espaço na lista
   if (length >= MAX_ITEMS_IN_OPEN_LIST) {
     printf("\n=======\nLista com nro máximo de elementos, man\n=======\n");
     return -1;
   }
-  
+
   // se chegou aqui, pode colocar na lista
-  
+
   char *filename_without_path = malloc(sizeof(filename));
   char *father_path = malloc(sizeof(filename));
-  
+
   father_path = get_father_dir_path(filename);
   filename_without_path = (char *) get_filename_from_path(filename);
-  
+
   int cluster_index = get_initial_cluster_from_path(father_path);
 
   // pega lista de entradas do diretório pai do arquivo em questão
   RECORDS_LIST *files_in_father_dir = newList();
   read_all_records(cluster_index, &files_in_father_dir);
-  
+
   struct t2fs_record *record;
   record = find_record(files_in_father_dir, filename_without_path);
-  
+
   if (record == NULL) {
     printf("Erro ao pegar record do arquivo %s\n", filename_without_path);
     return -1;
   }
-  
+
   int handler_available = get_fisrt_handler_available(open_files, MAX_ITEMS_IN_OPEN_LIST);
-  
+
   // provavelmente não vai cair aqui pois se não tem espaço na lista já deve ter caído fora
   // mas é bom garantir..
   if (handler_available < 0) {
     printf("Erro: todos handles estão ocupados\n");
     return -1;
   }
-  
+
   // cria um elemento pra botar na lista
   GENERIC_FILE generic_file;
   generic_file.record = *record;
   generic_file.handler = handler_available;
   generic_file.pointer = 0;
-  
+
   // insere o arquivo
   insert_record(&open_files, generic_file);
 
@@ -216,33 +227,89 @@ int close2 (FILE2 handle) {
     printf("Erro ao fechar arquivo %i\n", handle);
     return -1;
   }
-  
+
   return 0;
 }
 
 int read2 (FILE2 handle, char *buffer, int size) {
+
   if (!has_initialized) {
     init();
     has_initialized = 1;
   }
-//
-//   if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
-//     printf("handle fora dos limites, man\n");
-//     return -1;
-//   }
-//   struct t2fs_record *rec;
-//   rec = (struct t2fs_record *) get_record_at_index(open_files, 0);
-//
-//   if (rec == NULL) {
-//     printf("O handle %i non ecziste\n", handle);
-//     return -1;
-//   }
-//
-//   // achou o arquivos
-//   printf("Reading %s\n", rec->name);
 
-  // aqui falta colocar o conteúdo do arquivo no buffer, creio eu
-  // (ler "size" bytes a partir do current_pointer)
+  if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
+     printf("handle fora dos limites, man\n");
+     return -1;
+   }
+
+   GENERIC_FILE *file;
+   file = get_record_at_index(open_files, 0);
+
+   if (file == NULL) {
+     printf("O handle %i non ecziste\n", handle);
+     return -1;
+   }
+
+
+
+
+   //printf("Reading %s\n", file->record.name);
+   //printf("a fat entry dele é a %d\n", read_fat_entry(file->record.firstCluster));
+
+//// essas coisas tem que vir do Superbloco
+  int sectors_per_cluster = 4;
+  int sector_size = 256;
+//////////////////////////////////////////
+
+
+
+   int occupied_clusters;
+   int bytes_by_cluster = sectors_per_cluster*sector_size; // isso vai ser uma variavel global calculada na leitura do superbloco!!!!!!!!!!!!!!
+   occupied_clusters = ceil((float)file->record.bytesFileSize/bytes_by_cluster);
+
+   //printf("esse arquivo ocupa %d clusters com %d\n", occupied_clusters, file->record.bytesFileSize);
+
+   int already_read = 0; // bytes já lidos
+
+   int cluster_offset = floor((float)file->pointer/bytes_by_cluster);
+   int bytes_offset = file->pointer % bytes_by_cluster;
+
+   int current_cluster = file->record.firstCluster + cluster_offset;
+   int next_cluster = read_fat_entry(file->record.firstCluster);
+   int remaining_clusters = occupied_clusters - cluster_offset;
+
+   char cluster_read[10000]; // tamanho dum cluster em bytes (é pra pegar do superbloco!!!)
+   unsigned int max_bytes_to_read = min(file->record.bytesFileSize - file->pointer, size);
+   unsigned int bytes_to_read;
+   int clusters_already_read = 1;
+   // (bytes_by_cluster-bytes_offset)*remaining_clusters
+
+   //printf("max bytes to read: %d\n", max_bytes_to_read);
+   while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
+
+     bytes_to_read = min(clusters_already_read*1024 - file->pointer, size-already_read);
+
+     //printf("already_read: %d\nbytes_to_read:%d\n", already_read, bytes_to_read);
+     read_cluster(current_cluster, cluster_read); // aqui o cluster_read tem o cluster atual
+     memcpy(buffer+already_read, cluster_read+bytes_offset, bytes_to_read); // copia tudo que ainda tem pra copiar do buffer
+
+     already_read += bytes_to_read; // leu o que faltava do cluster
+     file->pointer += bytes_to_read; // atualiza o ponteiro do arquivo
+     bytes_offset = file->pointer % bytes_by_cluster;
+     clusters_already_read++;
+
+     if (next_cluster != 4294967295) { // hahahahhahahahauhdasuidhasidhashdiadsaihdsaui isso é o ffffffff
+       //printf("tem mais cluster!!!\n");
+       current_cluster = next_cluster; // vai pro proximo cluster
+       next_cluster = read_fat_entry(current_cluster); // prepara o proximo tb
+     }
+
+    // printf("already_read: %d\nbytes_to_read:%d\n", already_read, bytes_to_read);
+
+   }
+
+   //printf("leu: \n%s\n", buffer);
 
   return 0;
 }

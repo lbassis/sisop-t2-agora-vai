@@ -48,12 +48,26 @@ int main() {
     // open2("tua_voh");
 
     // open2("/dir1/file1.txt");
-    
+
     // int handle = open2("/dir1/file1.txt");
     // close2(handle);
-    
-    create2("/feitoria_gurizada.txt");
+
+    //create2("/feitoria_gurizada.txt");
     // mkdir2("");
+    //init();
+    //chdir2("dir1");
+    //ls();
+
+
+
+
+
+
+
+    FILE2 teste = open2("aasd.txt");
+    char buffer[50000];
+    read2(teste, buffer, 50000);
+    printf("%s\n", buffer);
 
     return 0;
 }

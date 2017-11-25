@@ -35,7 +35,7 @@ void print_records(RECORDS_LIST *q) {
 
   printf("Printing list:\n");
   while (aux != NULL) {
-    printf("%s\n", aux->generic_file.record.name);
+    printf("%s - %u bytes\n", aux->generic_file.record.name, aux->generic_file.record.bytesFileSize);
     aux = aux->next;
   }
 }
