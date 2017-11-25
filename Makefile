@@ -46,6 +46,7 @@ run:
 	@gcc -g -ggdb $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -lm -o $(TEST_DIR)/main
 	@./$(TEST_DIR)/main
 
-valgrindo_run:
+valgrind_run:
+	git checkout t2fs_disk.dat
 	@gcc -g -ggdb $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -lm -o $(TEST_DIR)/main
 	@valgrind $(TEST_DIR)/main

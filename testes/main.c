@@ -48,7 +48,7 @@ int main() {
     // closedir2(handle1);
     // closedir2(handle2);
 
-// testes read2
+//testes read2
     // FILE2 teste = open2("file1.txt");
     // FILE2 teste2 = open2("file2.txt");
     // seek2(teste2, -1);
@@ -81,7 +81,7 @@ int main() {
   // printf("\n%s\n", buffer);
 
 //testes delete
-identify2(NAMES, NAMES_SIZE);
+  //delete2("file2.txt");
   delete2("file2.txt");
 
     return 0;

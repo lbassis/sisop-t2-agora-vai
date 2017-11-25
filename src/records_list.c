@@ -80,6 +80,25 @@ GENERIC_FILE *get_record_at_index(RECORDS_LIST *q, int index) {
 
   while (aux != NULL) {
     if (i == index) {
+      printf("achou o %s\n", aux->generic_file.record.name);
+      return &(aux->generic_file);
+    }
+
+    i ++;
+    aux = aux->next;
+  }
+
+  return NULL;
+}
+
+GENERIC_FILE *get_record_at_filename(RECORDS_LIST *q, char *name) {
+
+  RECORDS_LIST *aux;
+  aux = q;
+  int i = 0, found = 0;
+
+  while (aux != NULL) {
+    if (strcmp(name, aux->generic_file.record.name) == 0) {
       return &(aux->generic_file);
     }
 
@@ -121,6 +140,32 @@ int remove_record_at_index(RECORDS_LIST **q, int handler_to_remove) {
 // recebe uma lista e procura o primeiro handler entre [0, máximo_da_lista - 1]
 // retorna o primeiro handler vazio que achar, ou -1 se não achar nenhum
 //
+
+int remove_record_at_filename(RECORDS_LIST **q, char *name) {
+
+  RECORDS_LIST *aux, *next, *prev;
+  aux = *q;
+
+  prev = aux;
+
+  while (aux != NULL) {
+     if (strcmp(aux->generic_file.record.name, name) == 0) {
+         if (prev == aux) {
+           *q = aux->next;
+         } else {
+           prev->next = aux->next;
+         }
+         free(aux);
+         return 0;
+     }
+
+    prev = aux;
+    aux = aux->next;
+  }
+
+  return -1;
+}
+
 
 int get_fisrt_handler_available(RECORDS_LIST *list, int list_max_items) {
     RECORDS_LIST *aux;

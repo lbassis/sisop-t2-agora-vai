@@ -152,19 +152,54 @@ FILE2 create2 (char *filename) {
 
 int delete2 (char *filename) {
 
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
 
   FILE2 file = open2(filename);
   seek2(file, 0);
   truncate2(file);
 
   GENERIC_FILE *deleted =  get_record_at_index(open_files, file);
-  set_fat_entry(deleted->record.firstCluster, 0);
+
+  if (deleted != NULL) {
+    set_fat_entry(deleted->record.firstCluster, 0);
 
 
 
-  // 6. remove do diretorio o registro com name == filename
-  // 7. fecha o diretorio
 
+
+
+
+    if (strcmp(filename, "/") == 0 || strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0) {
+      printf("Erro: tentou apagar merda\n");
+      return -1;
+    }
+
+    char *name = malloc(sizeof(filename));
+    char *father_path = malloc(sizeof(filename));
+
+    father_path = get_father_dir_path(filename);
+    name = (char *) get_filename_from_path(filename);
+
+    int cluster_index = get_initial_cluster_from_path(father_path);
+
+    RECORDS_LIST *files_in_father_dir = newList();
+    read_all_records(cluster_index, &files_in_father_dir);
+
+    printf("printando o que eu achei:\n");
+
+    GENERIC_FILE *found_record = get_record_at_filename(files_in_father_dir, filename);
+    print_record(found_record->record);
+
+    printf("resultado::: %d\n", remove_record_at_filename(&files_in_father_dir, found_record->record.name));
+
+    printf("printando como ficou o diretorio:\n");
+    print_records(files_in_father_dir);
+  }
+
+  else return -1;
 }
 
 FILE2 open2 (char *filename) {
