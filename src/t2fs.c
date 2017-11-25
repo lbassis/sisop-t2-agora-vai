@@ -156,13 +156,11 @@ FILE2 open2 (char *filename) {
   }
   
   // cria um elemento pra botar na lista
-  GENERIC_FILE generic_file;
-  generic_file.record = *record;
-  generic_file.handler = handler_available;
-  generic_file.pointer = 0;
+  GENERIC_FILE *generic_file;
+  generic_file = (GENERIC_FILE *) create_generic_new_file(record, handler_available, 0);
   
   // insere o arquivo
-  insert_record(&open_files, generic_file);
+  insert_record(&open_files, *generic_file);
 
   length = list_length(open_files);
 
@@ -170,7 +168,7 @@ FILE2 open2 (char *filename) {
   print_records(open_files);
   printf("\nList length: %i\n", length);
 
-  return 0;
+  return handler_available;
 }
 
 
@@ -179,7 +177,7 @@ int close2 (FILE2 handle) {
     init();
     has_initialized = 1;
   }
-
+  
   int length = list_length(open_files);
 
   if (handle < 0 || handle >= MAX_ITEMS_IN_OPEN_LIST) {
@@ -191,6 +189,14 @@ int close2 (FILE2 handle) {
     printf("Erro ao fechar arquivo %i\n", handle);
     return -1;
   }
+
+  printf("\n\nDID CLOSE\n\n");
+  
+  length = list_length(open_files);
+
+  printf("\n===== open files =====\n");
+  print_records(open_files);
+  printf("\nList length: %i\n", length);
   
   return 0;
 }

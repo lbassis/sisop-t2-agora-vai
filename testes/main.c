@@ -38,10 +38,15 @@
 // testando lista de GENERIC_FILE
 //
 int main() {
+    create2("/feitoria_gurizada.txt");
     
-    // create2("/foi.txt");
+    int handle1 = open2("/outro_dir/mais_um.txt");
+    int handle2 = open2("/feitoria_gurizada.txt");
     
-    mkdir2("/outro_dir");
+    close2(handle1);
+    close2(handle2);
+    
+    // mkdir2("/outro_dir");
     
     // create2("/feitoria_gurizada.txt");
     // int handle = open2("/feitoria_gurizada.txt");
