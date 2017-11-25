@@ -20,9 +20,9 @@ int mkdir2 (char *pathname);     [DONE]
 
 int rmdir2 (char *pathname);
 
-int chdir2 (char *pathname);
+int chdir2 (char *pathname); [DONE]
 
-int getcwd2 (char *pathname, int size);
+int getcwd2 (char *pathname, int size); [DONE]
 
 DIR2 opendir2 (char *pathname);     [DONE]
 

@@ -157,6 +157,7 @@ int get_initial_cluster_from_path(char *path) {
 }
 
 void ls() {
+    printf("ls:\n");
     RECORDS_LIST *a;
     read_all_records(get_initial_cluster_from_path(current_path), &a);
 }

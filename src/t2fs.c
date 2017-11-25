@@ -254,67 +254,62 @@ int read2 (FILE2 handle, char *buffer, int size) {
      return -1;
    }
 
+   else {
+     //printf("Reading %s\n", file->record.name);
+  //// essas coisas tem que vir do Superbloco
+    int sectors_per_cluster = 4;
+    int sector_size = 256;
+  //////////////////////////////////////////
 
+     int occupied_clusters;
+     int bytes_by_cluster = sectors_per_cluster*sector_size; // isso vai ser uma variavel global calculada na leitura do superbloco!!!!!!!!!!!!!!
+     occupied_clusters = ceil((float)file->record.bytesFileSize/bytes_by_cluster);
 
+     //printf("esse arquivo ocupa %d clusters com %d\n", occupied_clusters, file->record.bytesFileSize);
 
-   //printf("Reading %s\n", file->record.name);
-   //printf("a fat entry dele é a %d\n", read_fat_entry(file->record.firstCluster));
+     int already_read = 0; // bytes já lidos
 
-//// essas coisas tem que vir do Superbloco
-  int sectors_per_cluster = 4;
-  int sector_size = 256;
-//////////////////////////////////////////
+     int cluster_offset = floor((float)file->pointer/bytes_by_cluster);
+     int bytes_offset = file->pointer % bytes_by_cluster;
 
+     int current_cluster = file->record.firstCluster + cluster_offset;
+     int next_cluster = read_fat_entry(file->record.firstCluster);
+     int remaining_clusters = occupied_clusters - cluster_offset;
 
+     char cluster_read[10000]; // tamanho dum cluster em bytes (é pra pegar do superbloco!!!)
+     unsigned int max_bytes_to_read = min(file->record.bytesFileSize - file->pointer, size);
+     unsigned int bytes_to_read;
+     int clusters_already_read = 1;
+     // (bytes_by_cluster-bytes_offset)*remaining_clusters
 
-   int occupied_clusters;
-   int bytes_by_cluster = sectors_per_cluster*sector_size; // isso vai ser uma variavel global calculada na leitura do superbloco!!!!!!!!!!!!!!
-   occupied_clusters = ceil((float)file->record.bytesFileSize/bytes_by_cluster);
+     //printf("max bytes to read: %d\n", max_bytes_to_read);
+     while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
 
-   //printf("esse arquivo ocupa %d clusters com %d\n", occupied_clusters, file->record.bytesFileSize);
+       bytes_to_read = min(clusters_already_read*1024 - file->pointer, size-already_read);
 
-   int already_read = 0; // bytes já lidos
+       //printf("already_read: %d\nbytes_to_read:%d\n", already_read, bytes_to_read);
+       read_cluster(current_cluster, cluster_read); // aqui o cluster_read tem o cluster atual
+       memcpy(buffer+already_read, cluster_read+bytes_offset, bytes_to_read); // copia tudo que ainda tem pra copiar do buffer
 
-   int cluster_offset = floor((float)file->pointer/bytes_by_cluster);
-   int bytes_offset = file->pointer % bytes_by_cluster;
+       already_read += bytes_to_read; // leu o que faltava do cluster
+       file->pointer += bytes_to_read; // atualiza o ponteiro do arquivo
+       bytes_offset = file->pointer % bytes_by_cluster;
+       clusters_already_read++;
 
-   int current_cluster = file->record.firstCluster + cluster_offset;
-   int next_cluster = read_fat_entry(file->record.firstCluster);
-   int remaining_clusters = occupied_clusters - cluster_offset;
+       if (next_cluster != 4294967295) { // hahahahhahahahauhdasuidhasidhashdiadsaihdsaui isso é o ffffffff
+         //printf("tem mais cluster!!!\n");
+         current_cluster = next_cluster; // vai pro proximo cluster
+         next_cluster = read_fat_entry(current_cluster); // prepara o proximo tb
+       }
 
-   char cluster_read[10000]; // tamanho dum cluster em bytes (é pra pegar do superbloco!!!)
-   unsigned int max_bytes_to_read = min(file->record.bytesFileSize - file->pointer, size);
-   unsigned int bytes_to_read;
-   int clusters_already_read = 1;
-   // (bytes_by_cluster-bytes_offset)*remaining_clusters
+      // printf("already_read: %d\nbytes_to_read:%d\n", already_read, bytes_to_read);
 
-   //printf("max bytes to read: %d\n", max_bytes_to_read);
-   while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
-
-     bytes_to_read = min(clusters_already_read*1024 - file->pointer, size-already_read);
-
-     //printf("already_read: %d\nbytes_to_read:%d\n", already_read, bytes_to_read);
-     read_cluster(current_cluster, cluster_read); // aqui o cluster_read tem o cluster atual
-     memcpy(buffer+already_read, cluster_read+bytes_offset, bytes_to_read); // copia tudo que ainda tem pra copiar do buffer
-
-     already_read += bytes_to_read; // leu o que faltava do cluster
-     file->pointer += bytes_to_read; // atualiza o ponteiro do arquivo
-     bytes_offset = file->pointer % bytes_by_cluster;
-     clusters_already_read++;
-
-     if (next_cluster != 4294967295) { // hahahahhahahahauhdasuidhasidhashdiadsaihdsaui isso é o ffffffff
-       //printf("tem mais cluster!!!\n");
-       current_cluster = next_cluster; // vai pro proximo cluster
-       next_cluster = read_fat_entry(current_cluster); // prepara o proximo tb
      }
 
-    // printf("already_read: %d\nbytes_to_read:%d\n", already_read, bytes_to_read);
+     //printf("leu: \n%s\n", buffer);
 
-   }
-
-   //printf("leu: \n%s\n", buffer);
-
-  return 0;
+    return 0;
+  }
 }
 
 int write2 (FILE2 handle, char *buffer, int size) {
@@ -476,10 +471,35 @@ int rmdir2 (char *pathname) {
 }
 
 int chdir2 (char *pathname) {
+
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
+
+  DIR2 dir;
+  if ((dir = opendir2(pathname)) != -1) {
     current_path = strcat(current_path, pathname);
+    closedir2(dir);
+  }
 }
 
-int getcwd2 (char *pathname, int size) {}
+int getcwd2 (char *pathname, int size) {
+
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
+
+  if (size < strlen(current_path)) {
+    return -1;
+  }
+
+  else {
+    strcpy(pathname, current_path);
+    return 0;
+  }
+}
 
 DIR2 opendir2 (char *pathname) {
   if (!has_initialized) {
