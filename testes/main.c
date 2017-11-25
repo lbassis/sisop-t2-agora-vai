@@ -49,12 +49,8 @@ int main() {
 
     // open2("/dir1/file1.txt");
     
-    int handle = open2("/dir1/file1.txt");
-    close2(handle);
-    
     // int handle = open2("/dir1/file1.txt");
     // close2(handle);
-    // printf("\n");
     
     create2("/feitoria_gurizada.txt");
     // mkdir2("");

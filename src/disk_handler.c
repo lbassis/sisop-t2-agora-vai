@@ -268,14 +268,74 @@ char *get_father_dir_path(char *path) {
     return father;
 }
 
+// struct t2fs_record read_record(char *buffer, int start) {
+//   struct t2fs_record record;
+//
+//   memcpy(&record.TypeVal, buffer + start, sizeof(record.TypeVal));
+//   memcpy(&record.name, buffer + start + 1, sizeof(record.name));
+//   memcpy(&record.bytesFileSize, buffer + start + 56, sizeof(record.bytesFileSize));
+//   memcpy(&record.firstCluster, buffer + start + 60, sizeof(record.firstCluster));
+//
+//   return record;
+// }
+
+
+
 int write_cluster(int cluster_index, char *buffer) {
   // faz a mágica aqui
+  int i = 0, j = 0, offset = 0;
+  int first_sector = DATA_SECTOR_START + (cluster_index * SECTORS_PER_CLUSTER);
+  unsigned char sector_buffer[256];
+
+  do {
+    for (j = 0; j < sizeof(sector_buffer); j++) {
+      sector_buffer[j] = buffer[j + offset];
+    }
+    write_sector(first_sector + i, sector_buffer);
+
+    offset += 256;
+    i ++;
+    } while(i < 4);
+  
   return 0;
 }
 
+void write_record_to_buffer(char *buffer, int start, struct t2fs_record *record) {
+  buffer[start] = record->TypeVal;
+  memcpy(buffer + start + 1, record->name, sizeof(record->name));
+  buffer[start + 56] = record->bytesFileSize;
+  buffer[start + 60] = record->firstCluster;
+}
+
+void init_buffer_with_zeros(char *buffer) {
+  int i;
+  for (i = 0; i < CLUSTER_SIZE; i++) {
+    buffer[i] = 0;
+  }
+}
+
 int write_list_of_records_to_cluster(RECORDS_LIST *list, int cluster_index) {
-  // 1. transforma de lista pra string (bota tudo num buffer)
-  // 2. chama write_cluster(cluster_index, buffer);
-  // 3. acho que é isso
+  int offset = 0, i = 0;
+  
+  // coloca zero em todo o buffer do cluster
+  char buffer[CLUSTER_SIZE];
+  init_buffer_with_zeros(buffer);
+  
+  RECORDS_LIST *aux;
+  aux = list;
+
+  // percorre toda a lista de entradas
+  // pra cada uma, adiciona suas informações no buffer do cluster
+  while (aux != NULL) {
+    offset = sizeof(struct t2fs_record) * i;
+    write_record_to_buffer(buffer, offset, &aux->generic_file.record);
+    
+    aux = aux->next;
+    i++;
+  }
+  
+  // escreve as infos contidas no buffer pro disco
+  write_cluster(cluster_index, buffer);
+  
   return 0;
 }

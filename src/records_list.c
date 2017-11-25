@@ -148,3 +148,13 @@ int get_fisrt_handler_available(RECORDS_LIST *list, int list_max_items) {
     // se chegar aqui é pq não tem jeito, não há nenhum handler disponível
     return -1;
 }
+
+void dump_list(RECORDS_LIST *list, char *buffer) {
+  RECORDS_LIST *aux;
+  aux = list;
+
+  while (aux != NULL) {
+    printf("%s\n", aux->generic_file.record.name);
+    aux = aux->next;
+  }
+}

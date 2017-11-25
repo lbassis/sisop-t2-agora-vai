@@ -60,8 +60,11 @@ FILE2 create2 (char *filename) {
   // de fato, cria vazio, entao nao precisa mexer no cluster dele
   
   // pega o nome do pai
+  char *name = malloc(sizeof(filename));
   char *father_path = malloc(sizeof(filename));
+  
   father_path = get_father_dir_path(filename);
+  name = (char *) get_filename_from_path(filename);
   
   int cluster_index = get_initial_cluster_from_path(father_path);
 
@@ -69,11 +72,13 @@ FILE2 create2 (char *filename) {
   RECORDS_LIST *files_in_father_dir = newList();
   read_all_records(cluster_index, &files_in_father_dir);
   
-  // ========== criação do novo elemento da lista ==========
+  // checa se já existe arquivo com este nome
+  if (find_record(files_in_father_dir, name) != NULL) {
+    printf("\nErro ao criar %s.\nJá existe um arquivo com este nome neste diretório.\n\n", filename);
+    return -1;
+  }
   
-  // name
-  char *name = malloc(sizeof(filename));
-  name = (char *) get_filename_from_path(filename);
+  // ========== criação do novo elemento da lista ==========
   
   // firstCluster
   int fat_entry = get_first_fat_entry_available();
@@ -100,14 +105,14 @@ FILE2 create2 (char *filename) {
   // insere o arquivo
   insert_record(&files_in_father_dir, new_file);
   
-  int length = list_length(files_in_father_dir);
-  
-  printf("\n===== files_in_father_dir =====\n");
-  print_records(files_in_father_dir);
-  printf("\nList length: %i\n", length);
-  
   // falta escrever as entradas do diretorio pai de volta pro seu cluster
   write_list_of_records_to_cluster(files_in_father_dir, cluster_index);
+  
+  // daqui pra baixo é só pra teste mesmo!
+  RECORDS_LIST *dir = newList();
+  read_all_records(cluster_index, &dir);
+  
+  print_records(dir);
 }
 
 int delete2 (char *filename) {
