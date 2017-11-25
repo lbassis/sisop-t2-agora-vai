@@ -393,15 +393,63 @@ int chdir2 (char *pathname) {
 int getcwd2 (char *pathname, int size) {}
 
 DIR2 opendir2 (char *pathname) {
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
 
-  /*
-  1. abre o diretório do current path
-  2. lê o registro com name == filename
-      2.1 se não encontrar := erro
-  3. encontra a entrada da firstCluster na fat
-  4. posiciona o ponteiro de entradas(current) no firstCluster
-  5. retorna handle(identificador)
-  */
+  int length = list_length(open_dirs);
+  
+  // confere se ainda tem espaço na lista
+  if (length >= MAX_ITEMS_IN_OPEN_LIST) {
+    printf("\n=======\nLista com nro máximo de elementos, man\n=======\n");
+    return -1;
+  }
+  
+  // se chegou aqui, pode colocar na lista
+  char *dirname_without_path = malloc(sizeof(pathname));
+  char *father_path = malloc(sizeof(pathname));
+  
+  father_path = get_father_dir_path(pathname);
+  dirname_without_path = (char *) get_filename_from_path(pathname);
+  
+  int cluster_index = get_initial_cluster_from_path(father_path);
+
+  // pega lista de entradas do diretório pai do arquivo em questão
+  RECORDS_LIST *files_in_father_dir = newList();
+  read_all_records(cluster_index, &files_in_father_dir);
+  
+  struct t2fs_record *record;
+  record = find_record(files_in_father_dir, dirname_without_path);
+  
+  if (record == NULL) {
+    printf("Erro ao pegar record do arquivo %s\n", dirname_without_path);
+    return -1;
+  }
+  
+  int handler_available = get_fisrt_handler_available(open_dirs, MAX_ITEMS_IN_OPEN_LIST);
+  
+  // provavelmente não vai cair aqui pois se não tem espaço na lista já deve ter caído fora
+  // mas é bom garantir..
+  if (handler_available < 0) {
+    printf("Erro: todos handles estão ocupados\n");
+    return -1;
+  }
+  
+  // cria um elemento pra botar na lista
+  GENERIC_FILE *generic_file;
+  generic_file = (GENERIC_FILE *) create_generic_new_file(record, handler_available, 0);
+  
+  // insere o arquivo
+  insert_record(&open_dirs, *generic_file);
+
+  length = list_length(open_dirs);
+
+  printf("\n===== open dirs =====\n");
+  print_records(open_dirs);
+  printf("\nList length: %i\n", length);
+
+  return handler_available;
 }
 
 int readdir2 (DIR2 handle, DIRENT2 *dentry) {}
@@ -415,4 +463,31 @@ int closedir2 (DIR2 handle) {
    4. tira handle da lista de arquivos abertos
    5. free ponteiro record ??? ???
   */
+  
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
+  
+  int length = list_length(open_dirs);
+
+  if (handle < 0 || handle >= MAX_ITEMS_IN_OPEN_LIST) {
+    printf("handle fora dos limites ou sei lá, man\n");
+    return -1;
+  }
+
+  if (remove_record_at_index(&open_dirs, handle) != 0) {
+    printf("Erro ao fechar dir %i\n", handle);
+    return -1;
+  }
+
+  printf("\n\nDID CLOSE\n\n");
+  
+  length = list_length(open_dirs);
+
+  printf("\n===== open dirs =====\n");
+  print_records(open_dirs);
+  printf("\nList length: %i\n", length);
+  
+  return 0;
 }

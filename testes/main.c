@@ -38,13 +38,14 @@
 // testando lista de GENERIC_FILE
 //
 int main() {
-    create2("/feitoria_gurizada.txt");
+    create2("/carissimo_doidao.txt");
     
-    int handle1 = open2("/outro_dir/mais_um.txt");
-    int handle2 = open2("/feitoria_gurizada.txt");
+    int handle1 = opendir2("/outro_dir");
+    int handle2 = opendir2("/dir1");
+    int handle3 = opendir2("/meuzovo");
     
-    close2(handle1);
-    close2(handle2);
+    closedir2(handle1);
+    closedir2(handle2);
     
     // mkdir2("/outro_dir");
     
