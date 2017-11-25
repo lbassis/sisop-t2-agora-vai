@@ -3,6 +3,7 @@
 #include <disk_handler.h>
 #include <math.h>
 #include <limits.h>
+#include <data.h>
 
 // nao sei se isso vai aqui mas azar
 int min(a,b) {
@@ -27,10 +28,27 @@ void init() {
 }
 
 int identify2 (char *name, int size) {
+
   if (!has_initialized) {
     init();
     has_initialized = 1;
   }
+
+  int i = 0;
+
+  printf("Esse trabalho foi desenvolvido pelos alunos: \n");
+  while (i < size) {
+
+    if (name+i != NULL)
+      printf("%c", name[i]);
+
+    else
+      return -1;
+
+      i++;
+    }
+
+return 0;
 
   // apenas por motivo de teste, aqui tem chamadas às funções do superblock.c
   // printf("\n== Printando diretamente do identify2 ==s\n");
@@ -134,19 +152,16 @@ FILE2 create2 (char *filename) {
 
 int delete2 (char *filename) {
 
-  // considerando que vai excluir sempre do current_path (nao pode incluir o path no nome do arquivo):
 
-  // 1. abre o diretorio do current path
-  // 2. le o registro com name == filename
-  // 2.1 se nao encontrar -> erro
-  // 3. encontra a entrada do firstCluster na fat
-  // 4. enquanto (valor_lido_na_fat != ff ff ff ff:
-  //                proximo_cluster = valor_lido_na_fat
-  //                zera (proximo_cluster) (escreve 0 em tudo [talvez isso nao seja necessario])
-  //                valor_lido_na_fat <- 0
-  //                valor_lido_na_fat <- proximo_cluster
-  //  (isso vai apagar todos os clusters e encadeamentos MENOS O PRIMEIRO!!!)
-  // 5. zera (firstCluster)
+  FILE2 file = open2(filename);
+  seek2(file, 0);
+  truncate2(file);
+
+  GENERIC_FILE *deleted =  get_record_at_index(open_files, file);
+  set_fat_entry(deleted->record.firstCluster, 0);
+
+
+
   // 6. remove do diretorio o registro com name == filename
   // 7. fecha o diretorio
 
@@ -421,15 +436,16 @@ int truncate2 (FILE2 handle) {
   }
 
   next_cluster = read_fat_entry(current_cluster); // salva o proximo cluster a visitar
-  set_fat_entry(current_cluster, 4294967295); // diz que o cluster atual é o ultimo do arquivo
   printf("vai excluir %d clusters\n", file_clusters - pointed_cluster);
 
   while (deleted_clusters+visited_clusters < file_clusters - pointed_cluster) {
     printf("while\n");
 
+    next_cluster = read_fat_entry(current_cluster); // le na fat qual o proximo
+
     if (is_first_cluster) {
       printf("vai truncar o cluster %d\n", current_cluster);
-      //set_fat_entry(current_cluster, 0); // coloca que o cluster atual é o ultimo
+      set_fat_entry(current_cluster, 4294967295); // diz que o cluster atual é o ultimo do arquivo
       truncate_cluster(current_cluster, file->pointer%1024);
       is_first_cluster = 0;
     }
@@ -440,7 +456,7 @@ int truncate2 (FILE2 handle) {
       zero_cluster(current_cluster); // escreve 0 em todo o cluster
     }
 
-    next_cluster = read_fat_entry(current_cluster); // le na fat qual o proximo
+    printf("vai pro %d\n", next_cluster);
     current_cluster = next_cluster; // vai pro proximo cluster
     deleted_clusters++;
   }

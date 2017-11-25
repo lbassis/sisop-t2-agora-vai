@@ -1,4 +1,4 @@
-int identify2 (char *name, int size);
+int identify2 (char *name, int size); [DONE]
 
 FILE2 create2 (char *filename);     [DONE]
 
@@ -12,7 +12,7 @@ int read2 (FILE2 handle, char *buffer, int size);	[DONE]
 
 int write2 (FILE2 handle, char *buffer, int size);
 
-int truncate2 (FILE2 handle);
+int truncate2 (FILE2 handle); [DONE]
 
 int seek2 (FILE2 handle, unsigned int offset); [DONE]
 

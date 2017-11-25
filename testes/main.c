@@ -4,6 +4,7 @@
 #include <superblock.h>
 #include <disk_handler.h>
 #include <fat.h>
+#include <data.h>
 
 // int main() {
 //   // int i;
@@ -70,15 +71,18 @@ int main() {
     // printf("%s\n", buffer);
 
  // testes truncate
-  FILE2 teste = open2("file2.txt");
-  seek2(teste, 50);
-  truncate2(teste);
+  // FILE2 teste = open2("file2.txt");
+  // seek2(teste, 50);
+  // truncate2(teste);
+  //
+  // char buffer[10000];
+  // seek2(teste, 0);
+  // read2(teste, buffer, 10000);
+  // printf("\n%s\n", buffer);
 
-  char buffer[10000];
-  seek2(teste, 0);
-  read2(teste, buffer, 10000);
-  printf("\n%s\n", buffer);
-
+//testes delete
+identify2(NAMES, NAMES_SIZE);
+  delete2("file2.txt");
 
     return 0;
 }

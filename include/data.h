@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 
+#define NAMES "Augusto Boranga\nLucas Assis\nOct�vio Arruda\n"
+#define NAMES_SIZE 45
+
 
 #define DIR_ENTRY_OFFSET 0
 #define DIR_ENTRY_SIZE 1
@@ -18,7 +21,7 @@
 
 
 typedef struct DIRECTORY {
-  BYTE typeVal
+  BYTE typeVal;
   char name[55];
   unsigned int bytesFileSize;
   unsigned int firstCluster;
