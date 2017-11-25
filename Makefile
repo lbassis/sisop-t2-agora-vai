@@ -5,7 +5,7 @@
 # regra "clean" para remover todos os objetos gerados.
 #
 # NECESSARIO adaptar este esqueleto de makefile para suas necessidades.
-#
+#return
 #
 
 CC=gcc
@@ -43,9 +43,9 @@ assis:
 	@cat lucas.txt
 
 run:
-	@gcc -g -ggdb $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/main
+	@gcc -g -ggdb $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -lm -o $(TEST_DIR)/main
 	@./$(TEST_DIR)/main
 
 valgrindo_run:
-	@gcc -g -ggdb $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/main
+	@gcc -g -ggdb $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -lm -o $(TEST_DIR)/main
 	@valgrind $(TEST_DIR)/main

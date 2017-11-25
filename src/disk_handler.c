@@ -29,9 +29,11 @@ void print_cluster(char *buffer) {
 
   for (i = 0; i < size / columns; i++) {
     for (j = 0; j < columns; j++) {
-      printf("%hhx\t", buffer[j + (columns * i)]);
+      //printf("%hhx\t", buffer[j + (columns * i)]);
+      printf("%c", buffer[j + (columns * i)]);
+
     }
-    printf("\n");
+    //printf("\n");
   }
 }
 
@@ -70,7 +72,7 @@ void print_record(struct t2fs_record record) {
   printf("TypeVal: %hhx\n", record.TypeVal);
   printf("name: %s\n", record.name);
   printf("bytesFileSize: %i\n", record.bytesFileSize);
-  printf("firstCluster: %i\n", record.firstCluster);
+  printf("firstCluster: %i\n\n", record.firstCluster);
 }
 
 void read_cluster(int cluster_index, char *buffer) {
@@ -111,7 +113,7 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
   }
   //printf("\n\n");
 
-  //print_records(*records);
+  print_records(*records);
 }
 
 int get_initial_cluster_from_path(char *path) {
@@ -296,15 +298,15 @@ int write_cluster(int cluster_index, char *buffer) {
     offset += 256;
     i ++;
     } while(i < 4);
-  
+
   return 0;
 }
 
 void write_record_to_buffer(char *buffer, int start, struct t2fs_record *record) {
-  buffer[start] = record->TypeVal;
+  memcpy(buffer + start, &(record->TypeVal), sizeof(record->TypeVal));
   memcpy(buffer + start + 1, record->name, sizeof(record->name));
-  buffer[start + 56] = record->bytesFileSize;
-  buffer[start + 60] = record->firstCluster;
+  memcpy(buffer + start + 56, &(record->bytesFileSize), sizeof(record->bytesFileSize));
+  memcpy(buffer + start + 60, &(record->firstCluster), sizeof(record->firstCluster));
 }
 
 void init_buffer_with_zeros(char *buffer) {
@@ -316,11 +318,11 @@ void init_buffer_with_zeros(char *buffer) {
 
 int write_list_of_records_to_cluster(RECORDS_LIST *list, int cluster_index) {
   int offset = 0, i = 0;
-  
+
   // coloca zero em todo o buffer do cluster
   char buffer[CLUSTER_SIZE];
   init_buffer_with_zeros(buffer);
-  
+
   RECORDS_LIST *aux;
   aux = list;
 
@@ -329,13 +331,13 @@ int write_list_of_records_to_cluster(RECORDS_LIST *list, int cluster_index) {
   while (aux != NULL) {
     offset = sizeof(struct t2fs_record) * i;
     write_record_to_buffer(buffer, offset, &aux->generic_file.record);
-    
+
     aux = aux->next;
     i++;
   }
-  
+
   // escreve as infos contidas no buffer pro disco
   write_cluster(cluster_index, buffer);
-  
+
   return 0;
 }

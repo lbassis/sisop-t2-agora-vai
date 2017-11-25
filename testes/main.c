@@ -39,16 +39,16 @@
 //
 int main() {
     create2("/carissimo_doidao.txt");
-    
+
     int handle1 = opendir2("/outro_dir");
     int handle2 = opendir2("/dir1");
     int handle3 = opendir2("/meuzovo");
-    
+
     closedir2(handle1);
     closedir2(handle2);
-    
+
     // mkdir2("/outro_dir");
-    
+
     // create2("/feitoria_gurizada.txt");
     // int handle = open2("/feitoria_gurizada.txt");
 
