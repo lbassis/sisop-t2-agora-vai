@@ -48,14 +48,14 @@ int main() {
     // closedir2(handle2);
 
 // testes read2
-    FILE2 teste = open2("file1.txt");
-    FILE2 teste2 = open2("file2.txt");
-    seek2(teste2, -1);
-    close2(teste2);
-    teste2 = open2("file2.txt");
-    char buffer[10000];
-    read2(teste2, buffer, 10000);
-    printf("\n%s\n", buffer);
+    // FILE2 teste = open2("file1.txt");
+    // FILE2 teste2 = open2("file2.txt");
+    // seek2(teste2, -1);
+    // close2(teste2);
+    // teste2 = open2("file2.txt");
+    // char buffer[10000];
+    // read2(teste2, buffer, 10000);
+    // printf("\n%s\n", buffer);
 
     // mkdir2("/outro_dir");
 
@@ -68,6 +68,17 @@ int main() {
     // chdir2("dir1");
     // getcwd2(buffer, 10);
     // printf("%s\n", buffer);
+
+ // testes truncate
+  FILE2 teste = open2("file2.txt");
+  seek2(teste, 50);
+  truncate2(teste);
+
+  char buffer[10000];
+  seek2(teste, 0);
+  read2(teste, buffer, 10000);
+  printf("\n%s\n", buffer);
+
 
     return 0;
 }

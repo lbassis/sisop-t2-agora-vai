@@ -2,6 +2,7 @@
 #include <t2fs.h>
 #include <disk_handler.h>
 #include <math.h>
+#include <limits.h>
 
 // nao sei se isso vai aqui mas azar
 int min(a,b) {
@@ -212,7 +213,6 @@ FILE2 open2 (char *filename) {
   return handler_available;
 }
 
-
 int close2 (FILE2 handle) {
   if (!has_initialized) {
     init();
@@ -242,80 +242,80 @@ int read2 (FILE2 handle, char *buffer, int size) {
   }
 
   if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
-     printf("handle fora dos limites, man\n");
-     return -1;
-   }
+    printf("handle fora dos limites, man\n");
+    return -1;
+  }
 
-   GENERIC_FILE *file;
-   file = get_record_at_index(open_files, handle);
+  GENERIC_FILE *file;
+  file = get_record_at_index(open_files, handle);
 
-   if (file == NULL) {
-     printf("O handle %i non ecziste\n", handle);
-     return -1;
-   }
+  if (file == NULL) {
+    printf("O handle %i non ecziste\n", handle);
+    return -1;
+  }
 
-   else {
-     //printf("Reading %s\n", file->record.name);
-  //// essas coisas tem que vir do Superbloco
+  else {
+    //printf("Reading %s\n", file->record.name);
+    //// essas coisas tem que vir do Superbloco
     int sectors_per_cluster = 4;
     int sector_size = 256;
-  //////////////////////////////////////////
+    //////////////////////////////////////////
 
-     int occupied_clusters;
-     int bytes_by_cluster = sectors_per_cluster*sector_size; // isso vai ser uma variavel global calculada na leitura do superbloco!!!!!!!!!!!!!!
-     occupied_clusters = ceil((float)file->record.bytesFileSize/bytes_by_cluster);
+    int occupied_clusters;
+    int bytes_by_cluster = sectors_per_cluster*sector_size; // isso vai ser uma variavel global calculada na leitura do superbloco!!!!!!!!!!!!!!
+    occupied_clusters = ceil((float)file->record.bytesFileSize/bytes_by_cluster);
 
-     //printf("esse arquivo ocupa %d clusters com %d\n", occupied_clusters, file->record.bytesFileSize);
+    //printf("esse arquivo ocupa %d clusters com %d\n", occupied_clusters, file->record.bytesFileSize);
 
-     int already_read = 0; // bytes já lidos
+    int already_read = 0; // bytes já lidos
 
-     int cluster_offset = floor((float)file->pointer/bytes_by_cluster);
-     int bytes_offset = file->pointer % bytes_by_cluster;
+    int cluster_offset = floor((float)file->pointer/bytes_by_cluster);
+    int bytes_offset = file->pointer % bytes_by_cluster;
 
-     int current_cluster = file->record.firstCluster;// + cluster_offset;
-     int next_cluster = read_fat_entry(file->record.firstCluster);
-     int remaining_clusters = occupied_clusters - cluster_offset;
+    int current_cluster = file->record.firstCluster;// + cluster_offset;
+    int next_cluster = read_fat_entry(file->record.firstCluster);
+    int remaining_clusters = occupied_clusters - cluster_offset;
 
-     char cluster_read[10000]; // tamanho dum cluster em bytes (é pra pegar do superbloco!!!)
-     unsigned int max_bytes_to_read = min(file->record.bytesFileSize - file->pointer, size);
-     unsigned int bytes_to_read;
-     int clusters_already_read = cluster_offset+1;
-     // (bytes_by_cluster-bytes_offset)*remaining_clusters
+    char cluster_read[10000]; // tamanho dum cluster em bytes (é pra pegar do superbloco!!!)
+    unsigned int max_bytes_to_read = min(file->record.bytesFileSize - file->pointer, size);
+    unsigned int bytes_to_read;
+    int clusters_already_read = cluster_offset+1;
+    // (bytes_by_cluster-bytes_offset)*remaining_clusters
 
-     //printf("max bytes to read: %d\n", max_bytes_to_read);
+    //printf("max bytes to read: %d\n", max_bytes_to_read);
 
-     while (cluster_offset > 0) { // se tem que pular algum
-       current_cluster = read_fat_entry(current_cluster);
-       bytes_offset = file->pointer % (cluster_offset*bytes_by_cluster);
-       cluster_offset--;
-       next_cluster = read_fat_entry(current_cluster);
-       remaining_clusters--;
-       clusters_already_read++;
-     }
+    while (cluster_offset > 0) { // se tem que pular algum
+      current_cluster = read_fat_entry(current_cluster);
+      bytes_offset = file->pointer % (cluster_offset*bytes_by_cluster);
+      cluster_offset--;
+      next_cluster = read_fat_entry(current_cluster);
+      remaining_clusters--;
+      clusters_already_read++;
+    }
 
-     while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
+    while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
 
-       bytes_to_read = min(clusters_already_read*1024 - file->pointer, size-already_read);
+      bytes_to_read = min(clusters_already_read*1024 - file->pointer, size-already_read);
 
-       read_cluster(current_cluster, cluster_read); // aqui o cluster_read tem o cluster atual
-       memcpy(buffer+already_read, cluster_read+bytes_offset, bytes_to_read); // copia tudo que ainda tem pra copiar do buffer
+      read_cluster(current_cluster, cluster_read); // aqui o cluster_read tem o cluster atual
+      memcpy(buffer+already_read, cluster_read+bytes_offset, bytes_to_read); // copia tudo que ainda tem pra copiar do buffer
 
-       already_read += bytes_to_read; // leu o que faltava do cluster
-       file->pointer += bytes_to_read; // atualiza o ponteiro do arquivo
-       bytes_offset = file->pointer % bytes_by_cluster;
-       clusters_already_read++;
+      already_read += bytes_to_read; // leu o que faltava do cluster
+      file->pointer += bytes_to_read; // atualiza o ponteiro do arquivo
+      bytes_offset = file->pointer % bytes_by_cluster;
+      clusters_already_read++;
 
-       if (next_cluster != 4294967295) { // hahahahhahahahauhdasuidhasidhashdiadsaihdsaui isso é o ffffffff
-         //printf("tem mais cluster!!!\n");
-         current_cluster = next_cluster; // vai pro proximo cluster
-         next_cluster = read_fat_entry(current_cluster); // prepara o proximo tb
-       }
+      if (next_cluster != 4294967295) { // hahahahhahahahauhdasuidhasidhashdiadsaihdsaui isso é o ffffffff
+        //printf("tem mais cluster!!!\n");
+        current_cluster = next_cluster; // vai pro proximo cluster
+        next_cluster = read_fat_entry(current_cluster); // prepara o proximo tb
+      }
 
       // printf("already_read: %d\nbytes_to_read:%d\n", already_read, bytes_to_read);
 
-     }
+    }
 
-     //printf("leu: \n%s\n", buffer);
+    //printf("leu: \n%s\n", buffer);
 
     return 0;
   }
@@ -367,17 +367,90 @@ int write2 (FILE2 handle, char *buffer, int size) {
 
 int truncate2 (FILE2 handle) {
 
-  // 1. encontra o arquivo com handle == handle na lista de arquivos abertos
-  // 1.2 se nao encontrar -> erro
-  // 2. encontra o cluster onde se encontra o ponteiro do record
-  // 3. initialCluster <- entrada na fat do cluster encontrado em 2
-  // 4. enquanto initialCluster != ff ff ff ff
-  //                zera o conteudo do initialCluster
-  //                proxCluster <- entrada do initialCluster na fat
-  //                muda a entrada do initialCluster na fat pra ff ff ff ff
-  //                initialCluster <- proxCluster
-  // 5. atualiza tamanho do arquivo
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
 
+  if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
+    printf("handle fora dos limites, man\n");
+    return -1;
+  }
+
+  GENERIC_FILE *file;
+  file = get_record_at_index(open_files, handle);
+
+  if (file == NULL) {
+    printf("O handle %i non ecziste\n", handle);
+    return -1;
+  }
+
+
+  // aqui vamos descobrir em qual cluster tá o pointer do arquivo!!!!
+  int file_clusters = 1 + ceil(file->record.bytesFileSize/(SECTOR_SIZE*4)); // tem no minimo 1
+  int pointed_cluster = ceil(file->pointer/(SECTOR_SIZE*4));
+  printf("ta apontando pro cluster %d e tem %d clusters\n", pointed_cluster, file_clusters);
+
+  if (pointed_cluster >= file_clusters) { // nunca vai entrar aqui mas ok
+    printf("da onde tanto cluster??");
+    return -1;
+  }
+
+  // aqui vamos limpar as entradas da fat depois desse cluster se tiver mais de 1
+
+  int current_cluster = file->record.firstCluster;
+
+  printf("o arquivo começa no cluster %u\n", current_cluster);
+  int next_cluster;
+  int visited_clusters = 0;
+  int deleted_clusters = 0;
+
+
+  int is_first_cluster = 1; // isso é porque o primeiro cluster a gente só trunca enquanto o resto n
+
+
+
+
+  if (pointed_cluster > 0) {
+
+    while (visited_clusters < pointed_cluster) { // coloca como current_cluster o que ta sendo apontado agora
+      current_cluster = read_fat_entry(current_cluster);
+      printf("foi pro cluster %d\n", current_cluster);
+      visited_clusters++;
+    }
+  }
+
+  next_cluster = read_fat_entry(current_cluster); // salva o proximo cluster a visitar
+  set_fat_entry(current_cluster, 4294967295); // diz que o cluster atual é o ultimo do arquivo
+  printf("vai excluir %d clusters\n", file_clusters - pointed_cluster);
+
+  while (deleted_clusters+visited_clusters < file_clusters - pointed_cluster) {
+    printf("while\n");
+
+    if (is_first_cluster) {
+      printf("vai truncar o cluster %d\n", current_cluster);
+      //set_fat_entry(current_cluster, 0); // coloca que o cluster atual é o ultimo
+      truncate_cluster(current_cluster, file->pointer%1024);
+      is_first_cluster = 0;
+    }
+
+    else {
+      printf("vai deletar o cluster %d\n", current_cluster);
+      set_fat_entry(current_cluster, 0); // coloca que o cluster atual ta livre
+      zero_cluster(current_cluster); // escreve 0 em todo o cluster
+    }
+
+    next_cluster = read_fat_entry(current_cluster); // le na fat qual o proximo
+    current_cluster = next_cluster; // vai pro proximo cluster
+    deleted_clusters++;
+  }
+
+
+  file->record.bytesFileSize = file->pointer;
+  seek2(handle, file->record.bytesFileSize);
+  printf("o arquivo ficou com %d bytes e com pointer = %d\n", file->record.bytesFileSize, file->pointer);
+
+  return 0;
 }
 
 int seek2 (FILE2 handle, unsigned int offset) {
@@ -608,12 +681,12 @@ int readdir2 (DIR2 handle, DIRENT2 *dentry) {}
 
 int closedir2 (DIR2 handle) {
   /*
-   1. encontra o arquivo com handle == handle na lista de arquivos abertos
-   1.2 se nao encontrar -> erro
-   2. encontra o cluster onde se encontra o ponteiro do record
-   3. initialCluster <- entrada na fat do cluster encontrado em 2
-   4. tira handle da lista de arquivos abertos
-   5. free ponteiro record ??? ???
+  1. encontra o arquivo com handle == handle na lista de arquivos abertos
+  1.2 se nao encontrar -> erro
+  2. encontra o cluster onde se encontra o ponteiro do record
+  3. initialCluster <- entrada na fat do cluster encontrado em 2
+  4. tira handle da lista de arquivos abertos
+  5. free ponteiro record ??? ???
   */
 
   if (!has_initialized) {

@@ -303,6 +303,39 @@ int write_cluster(int cluster_index, char *buffer) {
   return 0;
 }
 
+void zero_cluster(int cluster_index) {
+
+  int sectors_per_cluster = 4;
+  int i;
+  char buffer[SECTOR_SIZE*sectors_per_cluster];
+
+  for (i = 0; i < sectors_per_cluster*SECTOR_SIZE; i++)
+    buffer[i] = 0;
+
+  write_cluster(cluster_index, buffer);
+}
+
+void truncate_cluster(int cluster_index, int offset) {
+
+  int cluster_size = 1024;
+  char buffer[1024];
+  char cluster_content[1024];
+
+  int i = 0;
+
+  read_cluster(cluster_index, cluster_content);
+
+  for (i = 0; i < offset; i++) {
+    buffer[i] = cluster_content[i];
+  }
+
+  for (i = offset; i < cluster_size; i++) {
+    buffer[i] = 0;
+  }
+
+  write_cluster(cluster_index, buffer);
+}
+
 void write_record_to_buffer(char *buffer, int start, struct t2fs_record *record) {
   memcpy(buffer + start, &(record->TypeVal), sizeof(record->TypeVal));
   memcpy(buffer + start + 1, record->name, sizeof(record->name));
