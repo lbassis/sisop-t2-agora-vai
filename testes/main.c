@@ -38,22 +38,13 @@
 // testando lista de GENERIC_FILE
 //
 int main() {
-    // open2("file1");
-    // open2("meuzovo");
-    // open2("xunda");
-    //
-    // close2(0);
-    //
-    // open2("jorge");
-    // open2("tua_voh");
-
-    // open2("/dir1/file1.txt");
     
-    // int handle = open2("/dir1/file1.txt");
-    // close2(handle);
+    // create2("/foi.txt");
     
-    create2("/feitoria_gurizada.txt");
-    // mkdir2("");
+    mkdir2("/outro_dir");
+    
+    // create2("/feitoria_gurizada.txt");
+    // int handle = open2("/feitoria_gurizada.txt");
 
     return 0;
 }

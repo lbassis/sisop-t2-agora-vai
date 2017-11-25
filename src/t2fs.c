@@ -29,42 +29,22 @@ int identify2 (char *name, int size) {
 }
 
 FILE2 create2 (char *filename) {
-
-  // ASSIS DOIDAO DIZ:
-  //
-  // considerando que vai criar sempre no current_path (nao pode incluir path no nome do arquivo):
-
-  // 1. encontra o primeiro cluster livre e atribui a ele ff ff ff ff
-  // 2. abre o diretorio do current path
-  // 2.1 se nao encontrar -> erro
-  // 3. adiciona a nova entrada ao diretorio: typeval = 1, name = filename, bytesfilesize = 0, firstcluster = valor encontrado em 1.
-  // 4. fecha o diretorio
-
-  // acredito que sempre crie vazio, entao nao precisa mexer no cluster dele
-  //
-  // ================================================================================
-  //
-  // BORANGA DOIDAO DIZ:
-  //
-  // o filename de entrada é ABSOLUTO, conforme t2fs.h linha 91
-
-  // 1. encontra a primeira entrada da fat livre e atribui a ela ff
-  // 2. vê se o diretório do dir pai existe (pega as entradas dele)
-  // 2.1 se nao encontrar -> erro
-  // 2.2 cria um GENERIC_FILE e um record pra este arquivo novo
-  // 3. adiciona a nova entrada às entradas do diretório diretorio: typeval = 1, name = filename, bytesfilesize = 0, firstcluster = valor encontrado em 1.
-  //    escreve no disco
-  //    escreve setor? ou cluster inteiro (mais fácil, escreve a lista toda) ?
-  // 4. fecha o diretorio
-
-  // de fato, cria vazio, entao nao precisa mexer no cluster dele
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
   
-  // pega o nome do pai
+  if (strcmp(filename, "/") == 0) {
+    printf("Erro: tentou criar o root\n");
+    return -1;
+  }
+  
   char *name = malloc(sizeof(filename));
   char *father_path = malloc(sizeof(filename));
   
   father_path = get_father_dir_path(filename);
   name = (char *) get_filename_from_path(filename);
+  
   
   int cluster_index = get_initial_cluster_from_path(father_path);
 
@@ -73,8 +53,9 @@ FILE2 create2 (char *filename) {
   read_all_records(cluster_index, &files_in_father_dir);
   
   // checa se já existe arquivo com este nome
-  if (find_record(files_in_father_dir, name) != NULL) {
-    printf("\nErro ao criar %s.\nJá existe um arquivo com este nome neste diretório.\n\n", filename);
+  struct t2fs_record *rec = find_record(files_in_father_dir, name);
+  if (rec != NULL && rec->TypeVal == 1) {
+    printf("\nErro ao criar arquivo %s.\nJá existe um arquivo com este nome neste diretório.\n\n", filename);
     return -1;
   }
   
@@ -89,21 +70,15 @@ FILE2 create2 (char *filename) {
   }
   
   // cria um record
-  struct t2fs_record *record = malloc(sizeof(struct t2fs_record));
-  record->TypeVal = 1; // arquivo regular
-  strcpy(record->name, name);
-  
-  record->bytesFileSize = 0;
-  record->firstCluster = fat_entry; // index da fat entry alocada pra esse record
+  struct t2fs_record *record;
+  record = (struct t2fs_record *) create_record(1, (char *) name, 0, fat_entry);
   
   // cria um elemento pra botar na lista
-  GENERIC_FILE new_file;
-  new_file.record = *record;
-  new_file.handler = -1; // bota -1 pq nesse caso nao faz sentido usar o handler
-  new_file.pointer = 0;
+  GENERIC_FILE *new_file;
+  new_file = (GENERIC_FILE *) create_generic_new_file(record, -1, 0);
   
   // insere o arquivo
-  insert_record(&files_in_father_dir, new_file);
+  insert_record(&files_in_father_dir, *new_file);
   
   // falta escrever as entradas do diretorio pai de volta pro seu cluster
   write_list_of_records_to_cluster(files_in_father_dir, cluster_index);
@@ -315,46 +290,80 @@ int seek2 (FILE2 handle, unsigned int offset) {
 }
 
 int mkdir2 (char *pathname) {
-  // pra testes apenas
-  // printf("\n=======\n\npath: \t%s\n", pathname);
-  // printf("father:\t%s\n\n", get_father_dir_path(pathname));
-
-  char *filename = malloc(sizeof(pathname));
-  char *father_path = malloc(sizeof(pathname));
-
-  father_path = get_father_dir_path(pathname);
-  filename = (char *) get_filename_from_path(pathname);
-
-  printf("father: %s\n", father_path);
-
-  printf("will get cluster index\n");
-  int cluster_index = get_initial_cluster_from_path(father_path);
-
-  printf("cluster index: %i\n", cluster_index);
-
-  RECORDS_LIST *files_in_father_dir = newList();
-  read_all_records(cluster_index, &files_in_father_dir);
-
-  struct t2fs_record *record;
-  record = find_record(files_in_father_dir, filename);
-
-  if (record == NULL) {
-    printf("Erro ao pegar record do arquivo %s\n", filename);
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
+  
+  if (strcmp(pathname, "/") == 0) {
+    printf("Erro: tentou criar o root\n");
     return -1;
   }
-
-  print_records(files_in_father_dir);
-  print_record(*record);
-
-  // considerando que vai criar sempre no current_path (nao pode incluir path no nome do diretorio):
-
-  // 1. encontra o primeiro cluster livre e atribui a ele ff ff ff ff
-  // 2. abre o diretor  io do current path
-  // 2.1 se nao encontrar -> erro
-  // 3. adiciona a nova entrada ao diretorio: typeval = 2, name = filename, bytesfilesize = 0, firstcluster = valor encontrado em 1.
-  // 4. fecha o diretorio
-
-  // acredito que sempre crie vazio, entao nao precisa mexer no cluster dele
+  
+  char *name = malloc(sizeof(pathname));
+  char *father_path = malloc(sizeof(pathname));
+  
+  father_path = get_father_dir_path(pathname);
+  name = (char *) get_filename_from_path(pathname);
+  
+  
+  int father_cluster_index = get_initial_cluster_from_path(father_path);
+  
+  // pega lista de entradas do diretório pai do arquivo a ser criado
+  RECORDS_LIST *files_in_father_dir = newList();
+  read_all_records(father_cluster_index, &files_in_father_dir);
+  
+  // checa se já existe dir com este nome
+  struct t2fs_record *rec = find_record(files_in_father_dir, name);
+  if (rec != NULL && rec->TypeVal == 2) {
+    printf("\nErro ao criar dir %s.\nJá existe um arquivo com este nome neste diretório.\n\n", pathname);
+    return -1;
+  }
+  
+  // ========== criação do novo elemento da lista ==========
+  
+  // firstCluster
+  int fat_entry = get_first_fat_entry_available();
+  
+  if (set_fat_entry(fat_entry, -1) == -1 || fat_entry < 0) {
+    printf("Erro ao setar fat entry como ff\n");
+    return -1;
+  }
+  
+  // cria um record
+  struct t2fs_record *record;
+  record = (struct t2fs_record *) create_record(2, name, CLUSTER_SIZE, fat_entry);
+  
+  // cria um elemento pra botar na lista
+  GENERIC_FILE *new_file;
+  new_file = (GENERIC_FILE *) create_generic_new_file(record, -1, 0);
+  
+  // insere o arquivo
+  insert_record(&files_in_father_dir, *new_file);
+  
+  // salva no disco a nova lista de conteudo do dir pai
+  write_list_of_records_to_cluster(files_in_father_dir, father_cluster_index);
+  
+  // cria as entradas . e .. no diretorio
+  RECORDS_LIST *new_dir_records = newList();
+  
+  // cria entradas dos dir . e .. no novo dir
+  create_default_records_in_directory(&new_dir_records, record->firstCluster, father_cluster_index);
+  
+  // e escreve o cluster desse novo dir no disco
+  write_list_of_records_to_cluster(new_dir_records, record->firstCluster);
+  
+  
+  // daqui pra baixo é só pra teste mesmo!
+  RECORDS_LIST *dir = newList();
+  
+  read_all_records(father_cluster_index, &dir);
+  printf("\n\n=== %s ===\n", father_path);
+  print_records(dir);
+  
+  read_all_records(record->firstCluster, &dir);
+  printf("\n\n=== %s ===\n", pathname);
+  print_records(dir);
 }
 
 int rmdir2 (char *pathname) {
