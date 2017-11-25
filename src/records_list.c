@@ -39,7 +39,8 @@ void print_records(RECORDS_LIST *q) {
 
   printf("Printing list:\n");
   while (aux != NULL) {
-    printf("%s\n", aux->generic_file.record.name);
+    print_record(aux->generic_file.record);
+    // printf("%s\n", aux->generic_file.record.name);
     aux = aux->next;
   }
 }
