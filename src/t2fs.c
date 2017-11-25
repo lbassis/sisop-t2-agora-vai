@@ -247,7 +247,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
    }
 
    GENERIC_FILE *file;
-   file = get_record_at_index(open_files, 0);
+   file = get_record_at_index(open_files, handle);
 
    if (file == NULL) {
      printf("O handle %i non ecziste\n", handle);
@@ -272,22 +272,31 @@ int read2 (FILE2 handle, char *buffer, int size) {
      int cluster_offset = floor((float)file->pointer/bytes_by_cluster);
      int bytes_offset = file->pointer % bytes_by_cluster;
 
-     int current_cluster = file->record.firstCluster + cluster_offset;
+     int current_cluster = file->record.firstCluster;// + cluster_offset;
      int next_cluster = read_fat_entry(file->record.firstCluster);
      int remaining_clusters = occupied_clusters - cluster_offset;
 
      char cluster_read[10000]; // tamanho dum cluster em bytes (é pra pegar do superbloco!!!)
      unsigned int max_bytes_to_read = min(file->record.bytesFileSize - file->pointer, size);
      unsigned int bytes_to_read;
-     int clusters_already_read = 1;
+     int clusters_already_read = cluster_offset+1;
      // (bytes_by_cluster-bytes_offset)*remaining_clusters
 
      //printf("max bytes to read: %d\n", max_bytes_to_read);
+
+     while (cluster_offset > 0) { // se tem que pular algum
+       current_cluster = read_fat_entry(current_cluster);
+       bytes_offset = file->pointer % (cluster_offset*bytes_by_cluster);
+       cluster_offset--;
+       next_cluster = read_fat_entry(current_cluster);
+       remaining_clusters--;
+       clusters_already_read++;
+     }
+
      while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
 
        bytes_to_read = min(clusters_already_read*1024 - file->pointer, size-already_read);
 
-       //printf("already_read: %d\nbytes_to_read:%d\n", already_read, bytes_to_read);
        read_cluster(current_cluster, cluster_read); // aqui o cluster_read tem o cluster atual
        memcpy(buffer+already_read, cluster_read+bytes_offset, bytes_to_read); // copia tudo que ainda tem pra copiar do buffer
 
@@ -373,10 +382,44 @@ int truncate2 (FILE2 handle) {
 
 int seek2 (FILE2 handle, unsigned int offset) {
 
-  // 1. encontra o arquivo com handle == handle na lista de arquivos abertos
-  // 1.2 se nao encontrar -> erro
-  // 2. posiciona o ponteiro do record na posiçao anterior + offset (????)
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
 
+  if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
+    printf("handle fora dos limites, man\n");
+    return -1;
+  }
+
+  else {
+
+    GENERIC_FILE *file;
+    file = get_record_at_index(open_files, handle);
+
+    if (file == NULL) {
+      printf("O handle %i non ecziste\n", handle);
+      return -1;
+    }
+
+    if (file->record.bytesFileSize < offset && offset != -1) {
+      printf("o arquivo nao é tao grande, champs\n");
+      return -1;
+    }
+
+    else {
+      if (offset == -1) {
+        printf("ei\n");
+        file->pointer = file->record.bytesFileSize; // poe na ultima posicao
+      }
+      else {
+        file->pointer = offset;
+      }
+
+      return 0;
+    }
+
+  }
 }
 
 int mkdir2 (char *pathname) {

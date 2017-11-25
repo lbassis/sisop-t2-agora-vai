@@ -104,7 +104,6 @@ int remove_record_at_index(RECORDS_LIST **q, int handler_to_remove) {
          } else {
            prev->next = aux->next;
          }
-
          free(aux);
          return 0;
      }

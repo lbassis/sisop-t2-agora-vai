@@ -10,11 +10,11 @@ int close2 (FILE2 handle);     [DONE]
 
 int read2 (FILE2 handle, char *buffer, int size);	[DONE]
 
-int write2 (FILE2 handle, char *buffer, int size);	
+int write2 (FILE2 handle, char *buffer, int size);
 
 int truncate2 (FILE2 handle);
 
-int seek2 (FILE2 handle, unsigned int offset);
+int seek2 (FILE2 handle, unsigned int offset); [DONE]
 
 int mkdir2 (char *pathname);     [DONE]
 

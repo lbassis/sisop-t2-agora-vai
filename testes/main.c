@@ -47,22 +47,27 @@ int main() {
     // closedir2(handle1);
     // closedir2(handle2);
 
-    // FILE2 teste = open2("file1.txt");
-    // char buffer[10000];
-    // read2(teste, buffer, 10000);
-    // printf("%s\n", buffer);
+// testes read2
+    FILE2 teste = open2("file1.txt");
+    FILE2 teste2 = open2("file2.txt");
+    seek2(teste2, -1);
+    close2(teste2);
+    teste2 = open2("file2.txt");
+    char buffer[10000];
+    read2(teste2, buffer, 10000);
+    printf("\n%s\n", buffer);
 
     // mkdir2("/outro_dir");
 
     // create2("/feitoria_gurizada.txt");
     // int handle = open2("/feitoria_gurizada.txt");
 
-    char buffer[10000];
-    getcwd2(buffer, 10);
-    printf("%s\n", buffer);
-    chdir2("dir1");
-    getcwd2(buffer, 10);
-    printf("%s\n", buffer);
+    // char buffer[10000];
+    // getcwd2(buffer, 10);
+    // printf("%s\n", buffer);
+    // chdir2("dir1");
+    // getcwd2(buffer, 10);
+    // printf("%s\n", buffer);
 
     return 0;
 }
