@@ -72,7 +72,7 @@ void print_record(struct t2fs_record record) {
   printf("TypeVal: %hhx\n", record.TypeVal);
   printf("name: %s\n", record.name);
   printf("bytesFileSize: %i\n", record.bytesFileSize);
-  printf("firstCluster: %i\n", record.firstCluster);
+  printf("firstCluster: %i\n\n", record.firstCluster);
 }
 
 void read_cluster(int cluster_index, char *buffer) {
@@ -303,10 +303,10 @@ int write_cluster(int cluster_index, char *buffer) {
 }
 
 void write_record_to_buffer(char *buffer, int start, struct t2fs_record *record) {
-  buffer[start] = record->TypeVal;
+  memcpy(buffer + start, &(record->TypeVal), sizeof(record->TypeVal));
   memcpy(buffer + start + 1, record->name, sizeof(record->name));
-  buffer[start + 56] = record->bytesFileSize;
-  buffer[start + 60] = record->firstCluster;
+  memcpy(buffer + start + 56, &(record->bytesFileSize), sizeof(record->bytesFileSize));
+  memcpy(buffer + start + 60, &(record->firstCluster), sizeof(record->firstCluster));
 }
 
 void init_buffer_with_zeros(char *buffer) {
