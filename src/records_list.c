@@ -109,6 +109,24 @@ GENERIC_FILE *get_record_at_filename(RECORDS_LIST *q, char *name) {
   return NULL;
 }
 
+GENERIC_FILE *get_record_with_handle(RECORDS_LIST *q, int handle) {
+
+  RECORDS_LIST *aux;
+  aux = q;
+  int i = 0, found = 0;
+
+  while (aux != NULL) {
+    if (handle == aux->generic_file.handler) {
+      return &(aux->generic_file);
+    }
+
+    i ++;
+    aux = aux->next;
+  }
+
+  return NULL;
+}
+
 int remove_record_at_index(RECORDS_LIST **q, int handler_to_remove) {
 
   RECORDS_LIST *aux, *next, *prev;

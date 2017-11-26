@@ -800,7 +800,38 @@ DIR2 opendir2 (char *pathname) {
   return handler_available;
 }
 
-int readdir2 (DIR2 handle, DIRENT2 *dentry) {}
+
+int readdir2 (DIR2 handle, DIRENT2 *dentry) {
+  
+  if (handle < 0 || handle >= MAX_ITEMS_IN_OPEN_LIST) {
+    printf("handle fora dos limites ou sei lá, man\n");
+    return -1;
+  }
+  
+  GENERIC_FILE *dir_generic_file = (GENERIC_FILE *) get_record_with_handle(open_dirs, handle);
+  if (dir_generic_file == NULL) {
+    printf("erro ao pegar record\n");
+    return -2;
+  }
+  
+  // pega entradas do record que acabou de ler
+  RECORDS_LIST *records_in_dir;
+  read_all_records(dir_generic_file->record.firstCluster, &records_in_dir);
+  
+  // pega o record no índice indicado pelo pointer do record do dir
+  GENERIC_FILE *current_file = get_record_at_index(records_in_dir, dir_generic_file->pointer);
+  
+  if (current_file == NULL) {
+    printf("não há mais records válidos\n");
+    return -1;
+  }
+  
+  // bota as coisa no dentry
+  
+  dir_generic_file->pointer += 1;
+  
+  return 0;
+}
 
 int closedir2 (DIR2 handle) {
   /*
