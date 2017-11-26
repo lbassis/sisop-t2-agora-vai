@@ -113,7 +113,7 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
   }
   //printf("\n\n");
 
-  print_records(*records);
+  //print_records(*records);
 }
 
 int get_initial_cluster_from_path(char *path) {
@@ -160,6 +160,7 @@ void ls() {
     printf("ls:\n");
     RECORDS_LIST *a;
     read_all_records(get_initial_cluster_from_path(current_path), &a);
+    print_records(a);
 }
 
 unsigned int first_empty_cluster() {

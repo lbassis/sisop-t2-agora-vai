@@ -232,3 +232,21 @@ int create_default_records_in_directory(RECORDS_LIST **list, int self_first_clus
   insert_record(list, *dot_file);
   insert_record(list, *dot_dot_file);
 }
+
+int delete_all_records(RECORDS_LIST **q) {
+
+  int i = 0;
+  int length = list_length(*q);
+  GENERIC_FILE *current_file;
+
+  while (i < length) {
+    current_file = get_record_at_index(*q, 0);  // sempre no 0 porque a gente vai ta removendo mesmo
+    if (current_file->record.TypeVal == 1) {
+      printf("removendo o arquivo %s\n", current_file->record.name);
+      delete2(current_file->record.name);
+    }
+    remove_record_at_index(q, 0);
+    i++;
+  }
+
+}

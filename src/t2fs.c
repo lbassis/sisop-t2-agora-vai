@@ -160,6 +160,7 @@ int delete2 (char *filename) {
   FILE2 file = open2(filename);
   seek2(file, 0);
   truncate2(file);
+  close2(file);
 
   GENERIC_FILE *deleted =  get_record_at_index(open_files, file);
 
@@ -625,15 +626,35 @@ int mkdir2 (char *pathname) {
 
 int rmdir2 (char *pathname) {
 
-  // considerando que vai excluir sempre do current_path (nao pode incluir o path no nome do diretorio):
+  if (!has_initialized) {
+    init();
+    has_initialized = 1;
+  }
 
-  // 1. abre o diretorio do current path
-  // 2. le o registro com name == filename
-  // 2.1 se nao encontrar -> erro
-  // 3. encontra a entrada do firstCluster na fat
-  // 4. zera (firstCluster)
-  // 5. remove do diretorio o registro com name == filename
-  // 7. fecha o diretorio
+
+  // considerando que vai excluir sempre do current_path (nao pode incluir o path no nome do diretorio):
+  DIR2 dir = opendir2(pathname);
+
+  if (dir == -1)
+    return -1;
+
+// ISSO TEM QUE VIRAR UMA FUNÇAO!!!!!
+    if (strcmp(pathname, "/") == 0 || strcmp(pathname, ".") == 0 || strcmp(pathname, "..") == 0) {
+      //printf("Erro: tentou apagar merda\n");
+      return -1;
+    }
+
+    char *name = malloc(sizeof(pathname));
+    name = (char *) get_filename_from_path(pathname);
+
+    int cluster_index = get_initial_cluster_from_path(pathname);
+
+    RECORDS_LIST *files_in_father_dir = newList();
+    read_all_records(cluster_index, &files_in_father_dir);
+    delete_all_records(&files_in_father_dir);
+    read_all_records(cluster_index, &files_in_father_dir);
+    print_records(files_in_father_dir);
+
 
 }
 
