@@ -37,10 +37,10 @@ void print_records(RECORDS_LIST *q) {
   RECORDS_LIST *aux;
   aux = q;
 
-  printf("Printing list:\n");
+  printf("Printing list:\n\n");
   while (aux != NULL) {
-    print_record(aux->generic_file.record);
-    // printf("%s\n", aux->generic_file.record.name);
+    // print_record(aux->generic_file.record);
+    printf("%s\n", aux->generic_file.record.name);
     aux = aux->next;
   }
 }
@@ -80,7 +80,7 @@ GENERIC_FILE *get_record_at_index(RECORDS_LIST *q, int index) {
 
   while (aux != NULL) {
     if (i == index) {
-      printf("achou o %s\n", aux->generic_file.record.name);
+      // printf("achou o %s\n", aux->generic_file.record.name);
       return &(aux->generic_file);
     }
 

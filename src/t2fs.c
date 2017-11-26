@@ -264,6 +264,7 @@ FILE2 open2 (char *filename) {
   printf("\n===== open files =====\n");
   print_records(open_files);
   printf("\nList length: %i\n", length);
+  printf("\n======================\n");
 
   return handler_available;
 }
@@ -740,6 +741,7 @@ int getcwd2 (char *pathname, int size) {
   }
 }
 
+
 DIR2 opendir2 (char *pathname) {
   if (!has_initialized) {
     init();
@@ -791,11 +793,13 @@ DIR2 opendir2 (char *pathname) {
   // insere o arquivo
   insert_record(&open_dirs, *generic_file);
 
-  length = list_length(open_dirs);
-
-  printf("\n===== open dirs =====\n");
-  print_records(open_dirs);
-  printf("\nList length: %i\n", length);
+  // length = list_length(open_dirs);
+  // 
+  // printf("\n===== open dirs =====\n");
+  // print_records(open_dirs);
+  // printf("\nList length: %i\n", length);
+  //
+  // printf("======================\n");
 
   return handler_available;
 }
@@ -826,7 +830,14 @@ int readdir2 (DIR2 handle, DIRENT2 *dentry) {
     return -1;
   }
   
+  char    name[MAX_FILE_NAME_SIZE+1]; /* Nome do arquivo cuja entrada foi lida do disco      */
+  BYTE    fileType;                   /* Tipo do arquivo: regular (0x01) ou diret�rio (0x02) */
+  DWORD   fileSize;                   /* Numero de bytes do arquivo                          */
+  
   // bota as coisa no dentry
+  strcpy(dentry->name, current_file->record.name);
+  dentry->fileType = current_file->record.TypeVal;
+  dentry->fileSize = current_file->record.bytesFileSize;
   
   dir_generic_file->pointer += 1;
   
