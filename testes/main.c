@@ -82,14 +82,12 @@ int main() {
 
 //testes delete
   //delete2("file2.txt");
+  init();
   chdir2("dir1/");
-  printf("1o ls:\n");
-  ls();
-  chdir2("../");
-  rmdir2("dir1");
-  chdir2("dir1/");
-  printf("current path: %s\n", current_path);
-  printf("2o ls:\n");
+  printf("o path ficou %s\n", current_path);
+  chdir2("..");
+  printf("o path ficou %s\n", current_path);
+
   ls();
     return 0;
 }

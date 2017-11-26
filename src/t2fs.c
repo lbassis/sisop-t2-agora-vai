@@ -668,6 +668,12 @@ int chdir2 (char *pathname) {
   DIR2 dir;
   if ((dir = opendir2(pathname)) != -1) {
     current_path = strcat(current_path, pathname);
+
+    if (current_path[strlen(current_path)-1] != '/' ) {
+      char *bar = "/";
+      current_path = strcat(current_path, bar);
+    }
+
     closedir2(dir);
   }
 }
