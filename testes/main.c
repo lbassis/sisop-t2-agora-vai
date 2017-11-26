@@ -82,9 +82,12 @@ int main() {
 
 //testes delete
   //delete2("file2.txt");
-  init();
-  ls();
   delete2("file1.txt");
+  chdir2("dir1");
+  delete2("file2.txt");
   ls();
+  chdir2("..");
+  ls();
+  //ls();
     return 0;
 }

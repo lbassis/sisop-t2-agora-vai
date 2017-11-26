@@ -176,7 +176,8 @@ int delete2 (char *filename) {
     char *name = malloc(sizeof(filename));
     char *father_path = malloc(sizeof(filename));
 
-    father_path = get_father_dir_path(filename);
+    //father_path = get_father_dir_path(filename);
+    getcwd2(father_path, sizeof(char)*strlen(current_path));
     name = (char *) get_filename_from_path(filename);
 
     int cluster_index = get_initial_cluster_from_path(father_path);
@@ -184,7 +185,8 @@ int delete2 (char *filename) {
     RECORDS_LIST *files_in_father_dir = newList();
     read_all_records(cluster_index, &files_in_father_dir);
 
-    //printf("printando o que eu achei:\n");
+    printf("printando os records do pai que eu achei:\n");
+    print_records(files_in_father_dir);
 
     GENERIC_FILE *found_record = get_record_at_filename(files_in_father_dir, filename);
     print_record(found_record->record);
