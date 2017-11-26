@@ -37,10 +37,10 @@ void print_records(RECORDS_LIST *q) {
   RECORDS_LIST *aux;
   aux = q;
 
-  printf("Printing list:\n");
+  printf("Printing list:\n\n");
   while (aux != NULL) {
-    print_record(aux->generic_file.record);
-    // printf("%s\n", aux->generic_file.record.name);
+    // print_record(aux->generic_file.record);
+    printf("%s\n", aux->generic_file.record.name);
     aux = aux->next;
   }
 }
@@ -80,7 +80,7 @@ GENERIC_FILE *get_record_at_index(RECORDS_LIST *q, int index) {
 
   while (aux != NULL) {
     if (i == index) {
-      printf("achou o %s\n", aux->generic_file.record.name);
+      // printf("achou o %s\n", aux->generic_file.record.name);
       return &(aux->generic_file);
     }
 
@@ -99,6 +99,24 @@ GENERIC_FILE *get_record_at_filename(RECORDS_LIST *q, char *name) {
 
   while (aux != NULL) {
     if (strcmp(name, aux->generic_file.record.name) == 0) {
+      return &(aux->generic_file);
+    }
+
+    i ++;
+    aux = aux->next;
+  }
+
+  return NULL;
+}
+
+GENERIC_FILE *get_record_with_handle(RECORDS_LIST *q, int handle) {
+
+  RECORDS_LIST *aux;
+  aux = q;
+  int i = 0, found = 0;
+
+  while (aux != NULL) {
+    if (handle == aux->generic_file.handler) {
       return &(aux->generic_file);
     }
 
