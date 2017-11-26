@@ -378,43 +378,86 @@ int read2 (FILE2 handle, char *buffer, int size) {
 
 int write2 (FILE2 handle, char *buffer, int size) {
 
-  // início padrão procurando pelo handler na lista de abertos
+  GENERIC_FILE *file;
+  file = get_record_at_index(open_files, handle);
 
-  if (!has_initialized) {
-    init();
-    has_initialized = 1;
+  if(file == NULL){
+    printf("handle %i n existe", handle);
+    return -1
   }
+  else {
 
-  int length = list_length(open_files);
+    int sectors_per_cluster = 4;
+    int sector_size = 256;
+    //////////////////////////////////////////
 
-  if (handle < 0 || handle >= MAX_ITEMS_IN_OPEN_LIST) {
-    printf("handle out of range\n");
-    return -1;
-  }
+    int occupied_clusters;
+    int bytes_by_cluster = sectors_per_cluster*sector_size; // isso vai ser uma variavel global calculada na leitura do superbloco!!!!!!!!!!!!!!
+    occupied_clusters = ceil((float)file->record.bytesFileSize/bytes_by_cluster);
 
-  printf("\n=====\n\nhandler to write: %i\n\n", handle);
+    //printf("esse arquivo ocupa %d clusters com %d\n", occupied_clusters, file->record.bytesFileSize);
 
-  struct t2fs_record *rec;
-  rec = (struct t2fs_record *) get_record_at_index(open_files, 0);
+    int already_read = 0; // bytes já lidos
+    int cluster_offset = floor((float)file->pointer/bytes_by_cluster);
+    int bytes_offset = file->pointer % bytes_by_cluster;
 
-  if (rec == NULL) {
-    printf("O handle %i n existe\n", handle);
-    return -1;
-  }
+    int current_cluster = file->record.firstCluster;// + cluster_offset;
+    int next_cluster = read_fat_entry(file->record.firstCluster);
+    int remaining_clusters = occupied_clusters - cluster_offset;
 
-  // fim do "início padrão"
+    char cluster_read[10000]; // tamanho dum cluster em bytes (é pra pegar do superbloco!!!)
+    unsigned int max_bytes_to_read = min(file->record.bytesFileSize - file->pointer, size);
+    unsigned int bytes_to_read;
+    int clusters_already_read = cluster_offset+1;
+    // (bytes_by_cluster-bytes_offset)*remaining_clusters
 
-  // 1. enquanto initialCluster != ff ff ff ff
-  // 2.    2.1 proxCluster <- entrada do initialCluster na fat
-  //       2.2 quando proxCluster for == ff ff ff ff
-  // 3.   se houver algum setor livre no cluster:
-  //      3.1 escreve 256 bytes do buffer no setor livre
-  //      3.2 desconta 256 bytes do local_buffer
-  //      3.3 checa o próximo setor do clusters
-  //      3.4 se houver setor livre, volta para 3.1 senão
-  // 4. aloca um cluster novo, encadeia e cluster novo = EOF
-  // 5. vá_para 3
-  // 6. se buffer não possui mais bytes a serem escritos, retorna 0
+    //printf("max bytes to read: %d\n", max_bytes_to_read);
+
+    while (cluster_offset > 0) { // se tem que pular algum
+      current_cluster = read_fat_entry(current_cluster);
+      bytes_offset = file->pointer % (cluster_offset*bytes_by_cluster);
+      cluster_offset--;
+      next_cluster = read_fat_entry(current_cluster);
+      remaining_clusters--;
+      clusters_already_read++;
+    }
+
+    while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
+
+      bytes_to_read = min(clusters_already_read*1024 - file->pointer, size-already_read);
+      already_read += bytes_to_read; // leu o que faltava do cluster
+      file->pointer += bytes_to_read; // atualiza o ponteiro do arquivo
+      bytes_offset = file->pointer % bytes_by_cluster;
+      clusters_already_read++;
+
+      if (next_cluster != 4294967295) { // hahahahhahahahauhdasuidhasidhashdiadsaihdsaui isso é o ffffffff
+          //printf("tem mais cluster!!!\n");
+        current_cluster = next_cluster; // vai pro proximo cluster
+        next_cluster = read_fat_entry(current_cluster); // prepara o proximo tb
+      }
+
+      if (next_cluster != 4294967295) { // hahahahhahahahauhdasuidhasidhashdiadsaihdsaui isso é o ffffffff
+      //printf("tem mais cluster!!!\n");
+      current_cluster = next_cluster; // vai pro proximo cluster
+      next_cluster = read_fat_entry(current_cluster); // prepara o proximo tb
+      }
+    }
+      //       **************************** SÓ PRA CHECAR NO EOF ****************************************
+    // ******************************************* ATÉ AQUI É TUDO DA READ2 ************************************************
+
+    int new_cluster = 0;
+    int nroclusters = ceil((float)file->record.bytesFileSize/1024; // pega o numero total de clusters
+    int bytes_ultimo_cluster = file->record.bytesFileSize - ((nro_clusters - 1) * 1024 // numero de total de bytes no ultimo cluster
+    // é util pra saber o quanto de espaço ta sobrando no ultimo cluster
+    write_cluster(current_cluster, buffer); // escreve os bytes do buffer no cluster EOF
+    buffer = buffer - bytes_ultimo_cluster; // se ainda tem bytes a serem escritos no buffer
+    while (buffer > 0){ // tem que alocar um novo cluster, encadear, dar o titulo de EOF a ele.
+      new_cluster = first_empty_cluster(); // pega o primeiro cluster livre
+      next_cluster = new_cluster;
+      next_cluster = 4294967295; // agora ele é EOF ;\ famoso ff ff ff ff oscuro
+      current_cluster = next_cluster;
+      }
+    }
 
 
 
