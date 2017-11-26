@@ -160,17 +160,12 @@ int delete2 (char *filename) {
   FILE2 file = open2(filename);
   seek2(file, 0);
   truncate2(file);
-  close2(file);
 
   GENERIC_FILE *deleted =  get_record_at_index(open_files, file);
 
+
   if (deleted != NULL) {
     set_fat_entry(deleted->record.firstCluster, 0);
-
-
-
-
-
 
 
     if (strcmp(filename, "/") == 0 || strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0) {
@@ -189,18 +184,27 @@ int delete2 (char *filename) {
     RECORDS_LIST *files_in_father_dir = newList();
     read_all_records(cluster_index, &files_in_father_dir);
 
-    printf("printando o que eu achei:\n");
+    //printf("printando o que eu achei:\n");
 
     GENERIC_FILE *found_record = get_record_at_filename(files_in_father_dir, filename);
     print_record(found_record->record);
 
-    printf("resultado::: %d\n", remove_record_at_filename(&files_in_father_dir, found_record->record.name));
-
-    printf("printando como ficou o diretorio:\n");
-    print_records(files_in_father_dir);
+    if (remove_record_at_filename(&files_in_father_dir, found_record->record.name) == 0) {
+      write_list_of_records_to_cluster(files_in_father_dir, cluster_index);
+      close2(file);
+      return 0;
+    }
+    else {
+      close2(file);
+      return -1;
+    }
+    //print_records(files_in_father_dir);
   }
 
-  else return -1;
+  else {
+    close2(file);
+    return -1;
+  }
 }
 
 FILE2 open2 (char *filename) {
@@ -653,8 +657,6 @@ int rmdir2 (char *pathname) {
     read_all_records(cluster_index, &files_in_father_dir);
     delete_all_records(&files_in_father_dir);
     read_all_records(cluster_index, &files_in_father_dir);
-    print_records(files_in_father_dir);
-
 
 }
 
