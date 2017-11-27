@@ -9,6 +9,10 @@
 #define TYPEVAL_REGULAR     0x01
 #define TYPEVAL_DIRETORIO   0x02
 
+#define SUCESS 0
+#define ERROR -1 // os erros podem ser valores diferentes de 0 ou negativos, dependendo da função
+// tem que cuidar isso me deixa puto
+
 #define MAX_ITEMS_IN_OPEN_LIST 10
 #define FAT_ENTRY_OCCUPIED -1
 
