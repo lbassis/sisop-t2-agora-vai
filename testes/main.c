@@ -62,7 +62,7 @@ void test_readdir2() {
 }
 
 int main() {
-  test_readdir2();
+  //test_readdir2();
 
     // create2("/carissimo_doidao.txt");
     //
@@ -109,16 +109,17 @@ int main() {
   //delete2("file2.txt");
   //rmdir2("dir1");
   //printf("o current path depois do rmdir2 é %s\n", current_path);
-  delete2("file2.txt");
-  printf("ls no root:\n");
+
+
+  init();
   ls();
-  chdir2("dir1");
-  delete2("file1.txt");
-  printf("ls no dir:\n");
+  rmdir2("dir1");
   ls();
-  //rmdir2("dir1");
-  //chdir2("dir1");
-  //ls();
-  //ls();
+  chdir2("./././././././.");
+  ls();// //chdir2("dir1");
+  // //current_path = "/";
+  // create2("teste.txt");
+  // ls();
+  // //ls();
     return 0;
 }

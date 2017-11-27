@@ -16,9 +16,9 @@ void print_sector(int sector) {
   read_sector(sector, buffer);
   for (i = 0; i < columns; i++) {
     for (j = 0; j < SECTOR_SIZE / columns; j++) {
-      printf("%hhx\t", buffer[j + ((SECTOR_SIZE / columns) * i)]);
+      //printf("%hhx\t", buffer[j + ((SECTOR_SIZE / columns) * i)]);
     }
-    printf("\n");
+    //printf("\n");
   }
 }
 
@@ -29,11 +29,11 @@ void print_cluster(char *buffer) {
 
   for (i = 0; i < size / columns; i++) {
     for (j = 0; j < columns; j++) {
-      //printf("%hhx\t", buffer[j + (columns * i)]);
-      printf("%c", buffer[j + (columns * i)]);
+      ////printf("%hhx\t", buffer[j + (columns * i)]);
+      //printf("%c", buffer[j + (columns * i)]);
 
     }
-    //printf("\n");
+    ////printf("\n");
   }
 }
 
@@ -57,7 +57,7 @@ struct t2fs_record *find_record(RECORDS_LIST *list, char *name) {
     RECORDS_LIST *aux = list;
 
     while (aux != NULL) {
-        //printf("comparando %s com %s\n", aux->record.name, name);
+        ////printf("comparando %s com %s\n", aux->record.name, name);
         if (strcmp(aux->generic_file.record.name, name) == 0) {
             return &(aux->generic_file.record);
         }
@@ -68,6 +68,15 @@ struct t2fs_record *find_record(RECORDS_LIST *list, char *name) {
 }
 
 void print_record(struct t2fs_record record) {
+  //printf("=========================\n\n");
+  //printf("TypeVal: %hhx\n", record.TypeVal);
+  //printf("name: %s\n", record.name);
+  //printf("bytesFileSize: %i\n", record.bytesFileSize);
+  //printf("firstCluster: %i\n\n", record.firstCluster);
+}
+
+
+void print_record2(struct t2fs_record record) {
   printf("=========================\n\n");
   printf("TypeVal: %hhx\n", record.TypeVal);
   printf("name: %s\n", record.name);
@@ -111,7 +120,7 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
       insert_record(records, generic_file);
     }
   }
-  //printf("\n\n");
+  ////printf("\n\n");
 
   //print_records(*records);
 }
@@ -148,7 +157,7 @@ int get_initial_cluster_from_path(char *path) {
 
     // se saiu do while numa boa é pq achou tudo
 
-    // printf("\n\nresultado do ls em %s \n", current_path);
+    // //printf("\n\nresultado do ls em %s \n", current_path);
     // RECORDS_LIST *testano;
     // read_all_records(current_initial_cluster, &testano);
     // print_records(testano);
@@ -157,10 +166,10 @@ int get_initial_cluster_from_path(char *path) {
 }
 
 void ls() {
-    printf("ls:\n");
+    printf("ls no %s:\n", current_path);
     RECORDS_LIST *a;
     read_all_records(get_initial_cluster_from_path(current_path), &a);
-    print_records(a);
+    print_records2(a);
 }
 
 unsigned int first_empty_cluster() {
@@ -180,17 +189,17 @@ unsigned int first_empty_cluster() {
         while (j < fat_sectors/4) { // numero de valores associados a cluster
             k = 0;
             zeroes = 0; // numero de 0s encontrados
-            printf("testando o cluster %d\n", i+j);
+            //printf("testando o cluster %d\n", i+j);
             while (k < 4) { // cada cluster tem 8 chars
-                printf("%hhx ", buffer[j*4+k]);
+                //printf("%hhx ", buffer[j*4+k]);
                 if (buffer[j*4+k] == 0) {
                     zeroes++;
                 }
                 k++;
             }
-            printf("\n");
+            //printf("\n");
             if (zeroes == 4) { // tudo zerado retorna o cluster que é assim
-                printf("achou 4 zeros no %d\n", i+j);
+                //printf("achou 4 zeros no %d\n", i+j);
                 return i+j; // substituir isso por current_sector
             }
             j++;
@@ -222,7 +231,7 @@ char *get_filename_from_path(char *path) {
 }
 
 char *get_father_dir_path(char *path) {
-    // printf("\n\n\n\n\n");
+    // //printf("\n\n\n\n\n");
 
     if (strcmp(path, "/") == 0) {
         return path;
@@ -241,9 +250,9 @@ char *get_father_dir_path(char *path) {
     char result[100] = "/";
     char current[100] = "/";
 
-    // printf("> buffer: %s\n", buffer);
-    // printf("> current: %s\n", current);
-    // printf("> previous: %s\n\n", previous);
+    // //printf("> buffer: %s\n", buffer);
+    // //printf("> current: %s\n", current);
+    // //printf("> previous: %s\n\n", previous);
 
     while(buffer != NULL) {
         strcpy(current, buffer);
@@ -375,4 +384,48 @@ int write_list_of_records_to_cluster(RECORDS_LIST *list, int cluster_index) {
   write_cluster(cluster_index, buffer);
 
   return 0;
+}
+
+
+int subcd (char *pathname) {
+
+  char *current_copy = malloc(sizeof(int)*(1 + strlen(current_path)));
+  strcpy(current_copy, current_path);
+  free(current_path);
+
+
+  DIR2 dir;
+  if ((dir = opendir2(pathname)) != -1) {
+
+    if (strcmp(pathname, "..") == 0) {
+      strcpy(current_path, get_father_dir_path(pathname));
+    }
+
+    else if (strcmp(pathname, ".") == 0) {
+      strcpy(current_path, current_copy);
+    }
+
+    else if (pathname[strlen(pathname)-1] != '/' ) {
+      char *bar = "/";
+
+      current_path = malloc(sizeof(char) * (1 + strlen(current_copy) + strlen(bar)));
+      strcpy(current_path, current_copy);
+      strcat(current_path, pathname);
+      strcat(current_path, bar);
+    }
+
+    else {
+      current_path = malloc(sizeof(char) * (1 + strlen(current_copy)));
+      strcpy(current_path, current_copy);
+      strcat(current_path, pathname);
+    }
+
+    closedir2(dir);
+    return 0;
+  }
+
+  else {
+    strcpy(current_path, current_copy);
+    return -1;
+  }
 }

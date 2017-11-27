@@ -37,7 +37,20 @@ void print_records(RECORDS_LIST *q) {
   RECORDS_LIST *aux;
   aux = q;
 
-  printf("Printing list:\n\n");
+  //printf("Printing list:\n\n");
+  while (aux != NULL) {
+    // print_record(aux->generic_file.record);
+    //printf("%s no cluster %d\n", aux->generic_file.record.name, aux->generic_file.record.firstCluster);
+    aux = aux->next;
+  }
+}
+
+void print_records2(RECORDS_LIST *q) {
+
+  RECORDS_LIST *aux;
+  aux = q;
+
+  //printf("Printing list:\n\n");
   while (aux != NULL) {
     // print_record(aux->generic_file.record);
     printf("%s no cluster %d\n", aux->generic_file.record.name, aux->generic_file.record.firstCluster);
@@ -80,7 +93,7 @@ GENERIC_FILE *get_record_at_index(RECORDS_LIST *q, int index) {
 
   while (aux != NULL) {
     if (i == index) {
-      // printf("achou o %s\n", aux->generic_file.record.name);
+      // //printf("achou o %s\n", aux->generic_file.record.name);
       return &(aux->generic_file);
     }
 
@@ -136,6 +149,8 @@ int remove_record_at_index(RECORDS_LIST **q, int handler_to_remove) {
 
   while (aux != NULL) {
      if (aux->generic_file.handler == handler_to_remove) {
+
+         //printf("a remove_record_at_index ta removendo o %s", aux->generic_file.record.name);
          if (prev == aux) {
            *q = aux->next;
          } else {
@@ -161,6 +176,8 @@ int remove_record_at_index(RECORDS_LIST **q, int handler_to_remove) {
 
 int remove_record_at_filename(RECORDS_LIST **q, char *name) {
 
+
+  //printf("entrou na remove_record_at_filename com name %s\n", name);
   RECORDS_LIST *aux, *next, *prev;
   aux = *q;
 
@@ -168,12 +185,18 @@ int remove_record_at_filename(RECORDS_LIST **q, char *name) {
 
   while (aux != NULL) {
      if (strcmp(aux->generic_file.record.name, name) == 0) {
-         if (prev == aux) {
-           *q = aux->next;
+         if (prev == aux) { // se era o primeiro
+           //*q = aux->next; // só pula o ponteiro pro proximo
+           *q = (*q)->next;
+
          } else {
+           //printf("o proximo do %s agora é o %s\n", prev->generic_file.record.name, aux->next->generic_file.record.name);
            prev->next = aux->next;
          }
          free(aux);
+
+         //printf("a lista ficou assim:::\n");
+         print_records(*q);
          return 0;
      }
 
@@ -252,22 +275,29 @@ int create_default_records_in_directory(RECORDS_LIST **list, int self_first_clus
 }
 
 int delete_all_records(RECORDS_LIST **q) {
-
-  printf("os caras que quero deletar sao os seguintes:\n");
-  print_records(*q);
-
   int i = 0;
   int length = list_length(*q);
-  GENERIC_FILE *current_file;
+  RECORDS_LIST *aux = *q;
+  RECORDS_LIST *next = aux;
 
-  while (2 < length) {
-    current_file = get_record_at_index(*q, length-1);  // sempre no 0 porque a gente vai ta removendo mesmo
-    if (current_file->record.TypeVal == 1) {
-      printf("removendo o arquivo %s\n", current_file->record.name);
-      delete2(current_file->record.name);
-      remove_record_at_index(q, length-1);
+
+
+  char *name;
+  int type;
+
+  while (aux != NULL) {
+    if (strcmp(aux->generic_file.record.name, "..") != 0) {
+      delete2(aux->generic_file.record.name);
+      next = aux->next;
+      remove_record_at_filename(q, aux->generic_file.record.name);
     }
-    length--;
+
+    else {
+      next = aux->next;
+    }
+
+    aux = next;
   }
 
+  print_records(*q);
 }
