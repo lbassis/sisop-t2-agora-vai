@@ -11,8 +11,7 @@ int min(a,b) {
   return result;
 }
 
-
-
+struct t2fs_superbloco *superblock;
 
 
 RECORDS_LIST *open_files;
@@ -20,6 +19,8 @@ RECORDS_LIST *open_dirs;
 int has_initialized = 0;
 
 void init() {
+  readSuperBlock(superblock);
+
   current_path = malloc(sizeof(int));
   current_path[0] = '/';
 
@@ -114,7 +115,7 @@ FILE2 create2 (char *filename) {
 
   // checa se já existe arquivo com este nome
   struct t2fs_record *rec = find_record(files_in_father_dir, name);
-  if (rec != NULL && rec->TypeVal == 1) {
+  if (rec != NULL && rec->TypeVal == TYPEVAL_REGULAR) { //   if (rec != NULL && rec->TypeVal == 1  // era um
     //printf("\nErro ao criar arquivo %s.\nJá existe um arquivo com este nome neste diretório.\n\n", filename);
     return -1;
   }
@@ -124,14 +125,14 @@ FILE2 create2 (char *filename) {
   // firstCluster
   int fat_entry = get_first_fat_entry_available();
 
-  if (set_fat_entry(fat_entry, -1) == -1 || fat_entry < 0) {
+  if (set_fat_entry(fat_entry, -1) == FAT_ENTRY_OCCUPIED || fat_entry < 0) { //   if (set_fat_entry(fat_entry, -1) == -1 || fat_entry < 0) //
     //printf("Erro ao setar fat entry como ff\n");
     return -1;
   }
 
   // cria um record
   struct t2fs_record *record;
-  record = (struct t2fs_record *) create_record(1, (char *) name, 0, fat_entry);
+  record = (struct t2fs_record *) create_record(TYPEVAL_REGULAR, (char *) name, 0, fat_entry); // create_record(1, (char *) name, 0, fat_entry);
 
   // cria um elemento pra botar na lista
   GENERIC_FILE *new_file;
@@ -323,8 +324,9 @@ int read2 (FILE2 handle, char *buffer, int size) {
   else {
     ////printf("Reading %s\n", file->record.name);
     //// essas coisas tem que vir do Superbloco
-    int sectors_per_cluster = 4;
-    int sector_size = 256;
+    int sectors_per_cluster = superblock->SectorsPerCluster; // era 4
+    int sector_size = SECTOR_SIZE; // era 256, essa constante tá uma porra
+
     //////////////////////////////////////////
 
     int occupied_clusters;
@@ -342,7 +344,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
     int next_cluster = read_fat_entry(file->record.firstCluster);
     int remaining_clusters = occupied_clusters - cluster_offset;
 
-    char cluster_read[10000]; // tamanho dum cluster em bytes (é pra pegar do superbloco!!!)
+    char cluster_read[(superblock->SectorsPerCluster) * SECTOR_SIZE]; // tamanho dum cluster em bytes (é pra pegar do superbloco!!!) // O VALOR ERA cluster_read[1000]
     unsigned int max_bytes_to_read = min(file->record.bytesFileSize - file->pointer, size);
     unsigned int bytes_to_read;
     int clusters_already_read = cluster_offset+1;
@@ -361,7 +363,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
 
     while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
 
-      bytes_to_read = min(clusters_already_read*1024 - file->pointer, size-already_read);
+      bytes_to_read = min(clusters_already_read*1024 - file->pointer, size-already_read); // 1024? sectorsPerCluster * SECTOR_SIZE? não sei se fica bom mudar isso não
 
       read_cluster(current_cluster, cluster_read); // aqui o cluster_read tem o cluster atual
       memcpy(buffer+already_read, cluster_read+bytes_offset, bytes_to_read); // copia tudo que ainda tem pra copiar do buffer
@@ -384,7 +386,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
 
     ////printf("leu: \n%s\n", buffer);
 
-    return 0;
+    return SUCESS; // era 0
   }
 }
 
@@ -395,7 +397,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
 
   if(file == NULL){
     printf("handle %i n existe", handle);
-    return -1;
+    return ERROR; // era -1
   }
 
   int relative_pointer, current_cluster, bytes_available, buffer_pointer = 0, cluster_is_full = 0;
@@ -429,7 +431,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
       // checa se deu erro ao escrever
       if (write_cluster_partially(current_cluster, buffer, buffer_pointer, relative_pointer, ammount_to_write) != 0) {
         printf("Erro ao escrever\n");
-        return -1;
+        return ERROR; // era -1
       }
 
       printf("-> will write from buffer starting at index %i\n", buffer_pointer);
@@ -466,7 +468,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
 
   printf("-> nada mais a escrever\n");
 
-  return 0;
+  return SUCESS;
 }
 
 int truncate2 (FILE2 handle) {
@@ -478,7 +480,7 @@ int truncate2 (FILE2 handle) {
 
   if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
     //printf("handle fora dos limites, man\n");
-    return -1;
+    return ERROR;
   }
 
   GENERIC_FILE *file;
@@ -486,18 +488,17 @@ int truncate2 (FILE2 handle) {
 
   if (file == NULL) {
     //printf("O handle %i non ecziste\n", handle);
-    return -1;
+    return ERROR;
   }
 
-
   // aqui vamos descobrir em qual cluster tá o pointer do arquivo!!!!
-  int file_clusters = 1 + ceil(file->record.bytesFileSize/(SECTOR_SIZE*4)); // tem no minimo 1
-  int pointed_cluster = ceil(file->pointer/(SECTOR_SIZE*4));
+  int file_clusters = 1 + ceil(file->record.bytesFileSize/(SECTOR_SIZE* (superblock->SectorsPerCluster))); // tem no minimo 1 // era SECTOR_SIZE * 4
+  int pointed_cluster = ceil(file->pointer/(SECTOR_SIZE * (superblock->SectorsPerCluster))); // era SECTOR_SIZE * 4
   //printf("ta apontando pro cluster %d e tem %d clusters\n", pointed_cluster, file_clusters);
 
   if (pointed_cluster >= file_clusters) { // nunca vai entrar aqui mas ok
     //printf("da onde tanto cluster??");
-    return -1;
+    return ERROR;
   }
 
   // aqui vamos limpar as entradas da fat depois desse cluster se tiver mais de 1
@@ -535,7 +536,7 @@ int truncate2 (FILE2 handle) {
     if (is_first_cluster) {
       //printf("vai truncar o cluster %d\n", current_cluster);
       set_fat_entry(current_cluster, -1); // diz que o cluster atual é o ultimo do arquivo
-      truncate_cluster(current_cluster, file->pointer%1024);
+      truncate_cluster(current_cluster, file->pointer%1024); // complicado mudar isso, n sei se vale
       is_first_cluster = 0;
     }
 
@@ -567,7 +568,7 @@ int seek2 (FILE2 handle, unsigned int offset) {
 
   if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
     //printf("handle fora dos limites, man\n");
-    return -1;
+    return ERROR;
   }
 
   else {
@@ -577,12 +578,12 @@ int seek2 (FILE2 handle, unsigned int offset) {
 
     if (file == NULL) {
       //printf("O handle %i non ecziste\n", handle);
-      return -1;
+      return ERROR;
     }
 
     if (file->record.bytesFileSize < offset && offset != -1) {
       //printf("o arquivo nao é tao grande, champs\n");
-      return -1;
+      return ERROR;
     }
 
     else {
@@ -594,7 +595,7 @@ int seek2 (FILE2 handle, unsigned int offset) {
         file->pointer = offset;
       }
 
-      return 0;
+      return SUCESS;
     }
 
   }
@@ -608,7 +609,7 @@ int mkdir2 (char *pathname) {
 
   if (strcmp(pathname, "/") == 0) {
     //printf("Erro: tentou criar o root\n");
-    return -1;
+    return ERROR;
   }
 
   char *name = malloc(sizeof(pathname));
@@ -626,9 +627,9 @@ int mkdir2 (char *pathname) {
 
   // checa se já existe dir com este nome
   struct t2fs_record *rec = find_record(files_in_father_dir, name);
-  if (rec != NULL && rec->TypeVal == 2) {
+  if (rec != NULL && rec->TypeVal == TYPEVAL_DIRETORIO) {
     //printf("\nErro ao criar dir %s.\nJá existe um arquivo com este nome neste diretório.\n\n", pathname);
-    return -1;
+    return ERROR;
   }
 
   // ========== criação do novo elemento da lista ==========
@@ -638,12 +639,12 @@ int mkdir2 (char *pathname) {
 
   if (set_fat_entry(fat_entry, -1) == -1 || fat_entry < 0) {
     //printf("Erro ao setar fat entry como ff\n");
-    return -1;
+    return ERROR;
   }
 
   // cria um record
   struct t2fs_record *record;
-  record = (struct t2fs_record *) create_record(2, name, CLUSTER_SIZE, fat_entry);
+  record = (struct t2fs_record *) create_record(TYPEVAL_DIRETORIO, name, CLUSTER_SIZE, fat_entry);
 
   // cria um elemento pra botar na lista
   GENERIC_FILE *new_file;
@@ -689,7 +690,7 @@ int rmdir2 (char *pathname) {
   DIR2 dir = opendir2(pathname);
 
   if (dir == -1)
-    return -1;
+    return ERROR;
 
 
     // tem que dar um chdir2 pra dentro do diretorio pra achar os arquivos la
@@ -698,7 +699,7 @@ int rmdir2 (char *pathname) {
 // ISSO TEM QUE VIRAR UMA FUNÇAO!!!!!
     if (strcmp(pathname, "/") == 0 || strcmp(pathname, ".") == 0 || strcmp(pathname, "..") == 0) {
       //printf("Erro: tentou apagar merda\n");
-      return -1;
+      return ERROR;
     }
 
     char *name = malloc(sizeof(pathname));
@@ -747,11 +748,11 @@ int chdir2 (char *pathname) {
   }
 
   if (subresult == 0) {
-    return 0;
+    return SUCESS;
   }
 
   else {
-    return -1;
+    return ERROR;
   }
 }
 
@@ -763,12 +764,12 @@ int getcwd2 (char *pathname, int size) {
   }
 
   if (size < strlen(current_path)) {
-    return -1;
+    return ERROR;
   }
 
   else {
     strcpy(pathname, current_path);
-    return 0;
+    return SUCESS;
   }
 }
 
@@ -784,7 +785,7 @@ DIR2 opendir2 (char *pathname) {
   // confere se ainda tem espaço na lista
   if (length >= MAX_ITEMS_IN_OPEN_LIST) {
     //printf("\n=======\nLista com nro máximo de elementos, man\n=======\n");
-    return -1;
+    return ERROR;
   }
 
   // se chegou aqui, pode colocar na lista
@@ -805,7 +806,7 @@ DIR2 opendir2 (char *pathname) {
 
   if (record == NULL) {
     //printf("Erro ao pegar record do arquivo %s\n", dirname_without_path);
-    return -1;
+    return ERROR;
   }
 
   int handler_available = get_fisrt_handler_available(open_dirs, MAX_ITEMS_IN_OPEN_LIST);
@@ -814,7 +815,7 @@ DIR2 opendir2 (char *pathname) {
   // mas é bom garantir..
   if (handler_available < 0) {
     //printf("Erro: todos handles estão ocupados\n");
-    return -1;
+    return ERROR;
   }
 
   // cria um elemento pra botar na lista
@@ -840,13 +841,13 @@ int readdir2 (DIR2 handle, DIRENT2 *dentry) {
 
   if (handle < 0 || handle >= MAX_ITEMS_IN_OPEN_LIST) {
     //printf("handle fora dos limites ou sei lá, man\n");
-    return -1;
+    return ERROR;
   }
 
   GENERIC_FILE *dir_generic_file = (GENERIC_FILE *) get_record_with_handle(open_dirs, handle);
   if (dir_generic_file == NULL) {
     //printf("erro ao pegar record\n");
-    return -2;
+    return -2; // OUTRO ERRO, nao é end_of_dir
   }
 
   // pega entradas do record que acabou de ler
@@ -858,7 +859,7 @@ int readdir2 (DIR2 handle, DIRENT2 *dentry) {
 
   if (current_file == NULL) {
     //printf("não há mais records válidos\n");
-    return -1;
+    return -1; // END_OF_DIR
   }
 
   char    name[MAX_FILE_NAME_SIZE+1]; /* Nome do arquivo cuja entrada foi lida do disco      */
@@ -872,7 +873,7 @@ int readdir2 (DIR2 handle, DIRENT2 *dentry) {
 
   dir_generic_file->pointer += 1;
 
-  return 0;
+  return SUCESS;
 }
 
 int closedir2 (DIR2 handle) {
@@ -894,12 +895,12 @@ int closedir2 (DIR2 handle) {
 
   if (handle < 0 || handle >= MAX_ITEMS_IN_OPEN_LIST) {
     //printf("handle fora dos limites ou sei lá, man\n");
-    return -1;
+    return ERROR;
   }
 
   if (remove_record_at_index(&open_dirs, handle) != 0) {
     //printf("Erro ao fechar dir %i\n", handle);
-    return -1;
+    return ERROR;
   }
 
   //printf("\n\nDID CLOSE\n\n");
@@ -910,5 +911,5 @@ int closedir2 (DIR2 handle) {
   print_records(open_dirs);
   //printf("\nList length: %i\n", length);
 
-  return 0;
+  return SUCESS;
 }
