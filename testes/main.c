@@ -61,8 +61,22 @@ void test_readdir2() {
   printf("\n");
 }
 
+void test_write2() {
+  unsigned char buffer[15];
+  strcpy(buffer, "oi galero");
+  
+  int handle = open2("/file2.txt");
+  if (seek2(handle, 900) == 0) {
+    write2(handle, buffer, sizeof(buffer));
+  }
+  
+  // read2(handle, buffer, sizeof(buffer));
+  // printf("\nCONTEUDO DO ARQUIVO:\n%s\n\n", buffer);
+}
+
 int main() {
-  test_readdir2();
+  // test_readdir2();
+  test_write2();
 
     // create2("/carissimo_doidao.txt");
     //
@@ -107,18 +121,32 @@ int main() {
 
 //testes delete
   //delete2("file2.txt");
+
   //rmdir2("dir1");
   //printf("o current path depois do rmdir2 é %s\n", current_path);
-  delete2("file2.txt");
-  printf("ls no root:\n");
-  ls();
-  chdir2("dir1");
-  delete2("file1.txt");
-  printf("ls no dir:\n");
-  ls();
+  
+  
+  //outro teste
+  
+  // delete2("file2.txt");
+  // printf("ls no root:\n");
+  // ls();
+  // chdir2("dir1");
+  // delete2("file1.txt");
+  // printf("ls no dir:\n");
+  // ls();
+  
+  
   //rmdir2("dir1");
   //chdir2("dir1");
   //ls();
-  //ls();
+
+  // delete2("file1.txt");
+  // chdir2("dir1");
+  // delete2("file2.txt");
+  // ls();
+  // chdir2("..");
+  // ls();
+  
     return 0;
 }

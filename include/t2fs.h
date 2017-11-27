@@ -10,6 +10,7 @@
 #define TYPEVAL_DIRETORIO   0x02
 
 #define MAX_ITEMS_IN_OPEN_LIST 10
+#define FAT_ENTRY_OCCUPIED -1
 
 typedef int FILE2;
 typedef int DIR2;

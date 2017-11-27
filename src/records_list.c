@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <disk_handler.h>
 
 RECORDS_LIST *newList() {
   return NULL;
@@ -270,4 +271,63 @@ int delete_all_records(RECORDS_LIST **q) {
     length--;
   }
 
+}
+
+int find_last_cluster(GENERIC_FILE *file) {
+  int next, current = file->record.firstCluster;
+  next = current;
+  
+  do {
+    current = next;
+    next = read_fat_entry(current);
+    
+  } while(next != 0 && next != -1 && next != -2);
+  
+  return current;
+}
+
+// mapeia o ponteiro absoluto (nro de bytes independente de quantos clusters tem) parada
+// valor relativo dentro do último cluster
+
+// se pointer = 0 => 0
+// se pointer = 1023 => 1023
+// se pointer = 1025 => 1
+// se pointer = 2047 => 1023
+// se pointer = 2048 => 0
+int calculate_relative_pointer(GENERIC_FILE *file) {
+  int pointer = file->pointer;
+  
+  while (pointer >= 1024) {
+    pointer -= 1024;
+  }
+  
+  return pointer;
+}
+
+int calculate_bytes_available_in_last_cluster(GENERIC_FILE *file) {
+  int occupied = file->record.bytesFileSize;
+  
+  while (occupied > 1024) {
+    occupied -= 1024;
+  }
+  
+  printf("====> livres: %i\n", CLUSTER_SIZE - occupied);
+  
+  return CLUSTER_SIZE - occupied;
+}
+
+int find_cluster_from_pointer(GENERIC_FILE *file) {
+  int pointer = file->pointer;
+  int cluster = file->record.firstCluster;
+  
+  // enquanto o valor do ponteiro indicar que tem mais de 1 cluster a frente
+  while (pointer > 1024) {
+    // diminui 1024
+    pointer -= 1024;
+    
+    // e pega o próximo cluster
+    cluster = read_fat_entry(cluster);
+  }
+  
+  return cluster;
 }

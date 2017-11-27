@@ -53,7 +53,7 @@ int set_fat_entry(int index, int value) {
   int fat_index_in_sector = index - ((sector_index - 1) * 64);
   int offset = fat_index_in_sector * 4;
   
-  printf("Value to be put: %i\n", value);
+  // printf("Value to be put: %i\n", value);
   
   // escrever no lugar certo do buffer o novo valor
   buffer[offset + 3] = (value >> 24);
@@ -61,11 +61,11 @@ int set_fat_entry(int index, int value) {
   buffer[offset + 1] = (value >> 8);
   buffer[offset] = value;
   
-  printf("%i => %hhx %hhx %hhx %hhx\n", value,
-                        buffer[offset + 3],
-                        buffer[offset + 2],
-                        buffer[offset + 1],
-                        buffer[offset]);
+  // printf("%i => %hhx %hhx %hhx %hhx\n", value,
+  //                       buffer[offset + 3],
+  //                       buffer[offset + 2],
+  //                       buffer[offset + 1],
+  //                       buffer[offset]);
 
   // escreve no setor
   write_sector(sector_index, buffer);
