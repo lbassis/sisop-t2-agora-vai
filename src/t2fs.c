@@ -191,7 +191,8 @@ int delete2 (char *filename) {
     //printf("printando os records do pai que eu achei:\n");
     print_records(files_in_dir);
 
-    GENERIC_FILE *found_record = get_record_at_filename(files_in_dir, filename);
+    GENERIC_FILE *found_record;
+    found_record = get_record_at_filename(files_in_dir, filename);
     printf("esse é o que vai pro xilindró:\n");
     print_record2(found_record->record);
 
@@ -533,7 +534,7 @@ int truncate2 (FILE2 handle) {
 
     if (is_first_cluster) {
       //printf("vai truncar o cluster %d\n", current_cluster);
-      set_fat_entry(current_cluster, 4294967295); // diz que o cluster atual é o ultimo do arquivo
+      set_fat_entry(current_cluster, -1); // diz que o cluster atual é o ultimo do arquivo
       truncate_cluster(current_cluster, file->pointer%1024);
       is_first_cluster = 0;
     }

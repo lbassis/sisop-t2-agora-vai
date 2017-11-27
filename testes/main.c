@@ -140,9 +140,9 @@ int main() {
   // ls();
 
 
-  //rmdir2("dir1");
-  //chdir2("dir1");
-  //ls();
+  rmdir2("dir1");
+  chdir2("dir1");
+  ls();
 
   // delete2("file1.txt");
   // chdir2("dir1");
@@ -150,12 +150,15 @@ int main() {
   // ls();
   // chdir2("..");
   // ls();
-  rmdir2("dir1");
-  create2("testeaaa.txt");
-  chdir2("dir1/../././dir1");
-  test_write2();
-  ls();
+  // rmdir2("dir1");
+  // create2("testeaaa.txt");
+  // chdir2("dir1/../././dir1");
+  // test_write2();
+  // ls();
 
+  //struct t2fs_superbloco s;
+  //readSuperBlock(&s);
+  //printf("%d\n", s.NofSectors);
 
     return 0;
 }

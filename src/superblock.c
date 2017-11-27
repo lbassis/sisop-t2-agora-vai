@@ -18,107 +18,121 @@ unsigned int hexToInt(unsigned char *buffer, int size) { // da pra generalizar i
   else if (size == 2) {
     value = (buffer[1] << 8 | buffer[0]);
   }
-  
+
   return value;
 }
 
 
-void diskId() { // só printa mesmo
+// void diskId() { // só printa mesmo
+//
+//   char id[ID_SIZE+1];
+//   FILE *file = fopen(DISK_FILE, "r");
+//
+//   fseek(file, 0, SEEK_SET);
+//
+//   fread(id, 1, ID_SIZE, file);
+//   id[ID_SIZE] = (char) 0; // marca de final da string
+//   printf("ID: %s\n", id);
+//
+//   fclose(file);
+// }
 
-  char id[ID_SIZE+1];
-  FILE *file = fopen(DISK_FILE, "r");
+unsigned int readSuperBlockSize(char *buffer) {
 
-  fseek(file, 0, SEEK_SET);
+  char *mini_buffer;
+  mini_buffer = malloc(sizeof(char)*SUPER_BLOCK_SIZE);
+  memcpy(mini_buffer, buffer+SUPER_BLOCK_SIZE_OFFSET, SUPER_BLOCK_SIZE);
+  int result = hexToInt(mini_buffer, SUPER_BLOCK_SIZE);
+  free(mini_buffer);
 
-  fread(id, 1, ID_SIZE, file);
-  id[ID_SIZE] = (char) 0; // marca de final da string
-  printf("ID: %s\n", id);
+  return result;
 
-  fclose(file);
 }
 
-unsigned int superBlockSize(FILE *file) {
+unsigned int readDiskSize(char *buffer) {
 
-  unsigned char buffer[SUPER_BLOCK_SIZE];
+  char *mini_buffer;
+  mini_buffer = malloc(sizeof(char)*DISK_SIZE);
+  memcpy(mini_buffer, buffer+DISK_SIZE_OFFSET, DISK_SIZE);
+  int result = hexToInt(mini_buffer, DISK_SIZE);
+  free(mini_buffer);
 
-  fseek(file, SUPER_BLOCK_SIZE_OFFSET, SEEK_SET);
-  fread(buffer, 1, SUPER_BLOCK_SIZE, file);
+  return result;
 
-  return hexToInt(buffer, SUPER_BLOCK_SIZE);
 }
 
-unsigned int readDiskSize(FILE *file) {
+unsigned int readNumberOfSectors(char *buffer) {
 
-  unsigned char buffer[DISK_SIZE];
+  char *mini_buffer;
+  mini_buffer = malloc(sizeof(char)*NUMBER_OF_SECTORS_SIZE);
+  memcpy(mini_buffer, buffer+NUMBER_OF_SECTORS_OFFSET, NUMBER_OF_SECTORS_SIZE);
+  int result = hexToInt(mini_buffer, NUMBER_OF_SECTORS_SIZE);
+  free(mini_buffer);
 
-  fseek(file, DISK_SIZE_OFFSET, SEEK_SET);
-  fread(buffer, 1, DISK_SIZE, file);
-
-  return hexToInt(buffer, DISK_SIZE);
+  return result;
 }
 
-unsigned int readNumberOfSectors(FILE *file) {
+unsigned int readSectorsPerCluster(char *buffer) {
 
-  unsigned char buffer[NUMBER_OF_SECTORS_SIZE];
+  char *mini_buffer;
+  mini_buffer = malloc(sizeof(char)*SECTORS_PER_CLUSTER_SIZE);
+  memcpy(mini_buffer, buffer+SECTORS_PER_CLUSTER_OFFSET, SECTORS_PER_CLUSTER_SIZE);
+  int result = hexToInt(mini_buffer, SECTORS_PER_CLUSTER_SIZE);
+  free(mini_buffer);
 
-  fseek(file, NUMBER_OF_SECTORS_OFFSET, SEEK_SET);
-  fread(buffer, 1, NUMBER_OF_SECTORS_SIZE, file);
-
-  return hexToInt(buffer, NUMBER_OF_SECTORS_SIZE);
+  return result;
 }
 
-unsigned int readSectorsPerCluster(FILE *file) {
+unsigned int readFatSectorStart(char *buffer) {
 
-  unsigned char buffer[SECTORS_PER_CLUSTER_SIZE];
+  char *mini_buffer;
+  mini_buffer = malloc(sizeof(char)*FAT_SECTOR_START_SIZE);
+  memcpy(mini_buffer, buffer+FAT_SECTOR_START_OFFSET, FAT_SECTOR_START_SIZE);
+  int result = hexToInt(mini_buffer, FAT_SECTOR_START_SIZE);
+  free(mini_buffer);
 
-  fseek(file, SECTORS_PER_CLUSTER_OFFSET, SEEK_SET);
-  fread(buffer, 1, SECTORS_PER_CLUSTER_SIZE, file);
+  return result;}
 
-  return hexToInt(buffer, SECTORS_PER_CLUSTER_SIZE);
+unsigned int readRootDirCluster(char *buffer) {
+
+  char *mini_buffer;
+  mini_buffer = malloc(sizeof(char)*ROOT_DIR_CLUSTER_SIZE);
+  memcpy(mini_buffer, buffer+ROOT_DIR_CLUSTER_OFFSET, ROOT_DIR_CLUSTER_SIZE);
+  int result = hexToInt(mini_buffer, ROOT_DIR_CLUSTER_SIZE);
+  free(mini_buffer);
+
+  return result;
 }
 
-unsigned int readFatSectorStart(FILE *file) {
+unsigned int readDataSectorStart(char *buffer) {
 
-  unsigned char buffer[FAT_SECTOR_START_SIZE];
+  char *mini_buffer;
+  mini_buffer = malloc(sizeof(char)*DATA_SECTOR_START_SIZE);
+  memcpy(mini_buffer, buffer+DATA_SECTOR_START_OFFSET, DATA_SECTOR_START_SIZE);
+  int result = hexToInt(mini_buffer, DATA_SECTOR_START_SIZE);
+  free(mini_buffer);
 
-  fseek(file, FAT_SECTOR_START_OFFSET, SEEK_SET);
-  fread(buffer, 1, FAT_SECTOR_START_SIZE, file);
-
-  return hexToInt(buffer, FAT_SECTOR_START_SIZE);
-}
-
-unsigned int readRootDirCluster(FILE *file) {
-
-  unsigned char buffer[ROOT_DIR_CLUSTER_SIZE];
-
-  fseek(file, ROOT_DIR_CLUSTER_OFFSET, SEEK_SET);
-  fread(buffer, 1, ROOT_DIR_CLUSTER_SIZE, file);
-
-  return hexToInt(buffer, ROOT_DIR_CLUSTER_SIZE);
-}
-
-unsigned int readDataSectorStart(FILE *file) {
-
-  unsigned char buffer[DATA_SECTOR_START_SIZE];
-
-  fseek(file, DATA_SECTOR_START_OFFSET, SEEK_SET);
-  fread(buffer, 1, DATA_SECTOR_START_SIZE, file);
-
-  return hexToInt(buffer, DATA_SECTOR_START_SIZE);
+  return result;
 }
 
 void readSuperBlock(struct t2fs_superbloco *superblock) {
 
-  FILE *file = fopen(DISK_FILE, "r");
-  
-  superblock->DiskSize = readDiskSize(file);
-  superblock->NofSectors = readNumberOfSectors(file);
-  superblock->SectorsPerCluster = readSectorsPerCluster(file);
-  superblock->pFATSectorStart = readFatSectorStart(file);
-  superblock->RootDirCluster = readRootDirCluster(file);
-  superblock->DataSectorStart = readDataSectorStart(file);
+  //FILE *file = fopen(DISK_FILE, "r");
 
-  fclose(file);
+  char buffer[1024]; // bem maior só por garantia
+  read_sector(0, buffer);
+
+
+  superblock->SuperBlockSize = readSuperBlockSize(buffer);
+  superblock->DiskSize = readDiskSize(buffer);
+  superblock->NofSectors = readNumberOfSectors(buffer);
+  superblock->SectorsPerCluster = readSectorsPerCluster(buffer);
+  superblock->pFATSectorStart = readFatSectorStart(buffer);
+  superblock->RootDirCluster = readRootDirCluster(buffer);
+  superblock->DataSectorStart = readDataSectorStart(buffer);
+  printSuperBlock(*superblock);
+  //
+  // fclose(file);
 }
 
 void printSuperBlock(struct t2fs_superbloco superblock) {

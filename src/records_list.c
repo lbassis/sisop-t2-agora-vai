@@ -288,7 +288,12 @@ int delete_all_records(RECORDS_LIST **q) {
 
   while (aux != NULL) {
     if (strcmp(aux->generic_file.record.name, "..") != 0) {
-      delete2(aux->generic_file.record.name);
+
+      if (aux->generic_file.record.TypeVal == 1)
+        delete2(aux->generic_file.record.name);
+      else
+        rmdir2(aux->generic_file.record.name);
+
       next = aux->next;
       remove_record_at_filename(q, aux->generic_file.record.name);
     }
@@ -306,13 +311,13 @@ int delete_all_records(RECORDS_LIST **q) {
 int find_last_cluster(GENERIC_FILE *file) {
   int next, current = file->record.firstCluster;
   next = current;
-  
+
   do {
     current = next;
     next = read_fat_entry(current);
-    
+
   } while(next != 0 && next != -1 && next != -2);
-  
+
   return current;
 }
 
@@ -326,38 +331,38 @@ int find_last_cluster(GENERIC_FILE *file) {
 // se pointer = 2048 => 0
 int calculate_relative_pointer(GENERIC_FILE *file) {
   int pointer = file->pointer;
-  
+
   while (pointer >= 1024) {
     pointer -= 1024;
   }
-  
+
   return pointer;
 }
 
 int calculate_bytes_available_in_last_cluster(GENERIC_FILE *file) {
   int occupied = file->record.bytesFileSize;
-  
+
   while (occupied > 1024) {
     occupied -= 1024;
   }
-  
+
   printf("====> livres: %i\n", CLUSTER_SIZE - occupied);
-  
+
   return CLUSTER_SIZE - occupied;
 }
 
 int find_cluster_from_pointer(GENERIC_FILE *file) {
   int pointer = file->pointer;
   int cluster = file->record.firstCluster;
-  
+
   // enquanto o valor do ponteiro indicar que tem mais de 1 cluster a frente
   while (pointer > 1024) {
     // diminui 1024
     pointer -= 1024;
-    
+
     // e pega o próximo cluster
     cluster = read_fat_entry(cluster);
   }
-  
+
   return cluster;
 }
