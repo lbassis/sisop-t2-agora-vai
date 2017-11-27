@@ -107,12 +107,18 @@ int main() {
 
 //testes delete
   //delete2("file2.txt");
-  delete2("file1.txt");
-  chdir2("dir1");
+  //rmdir2("dir1");
+  //printf("o current path depois do rmdir2 é %s\n", current_path);
   delete2("file2.txt");
+  printf("ls no root:\n");
   ls();
-  chdir2("..");
+  chdir2("dir1");
+  delete2("file1.txt");
+  printf("ls no dir:\n");
   ls();
+  //rmdir2("dir1");
+  //chdir2("dir1");
+  //ls();
   //ls();
     return 0;
 }
