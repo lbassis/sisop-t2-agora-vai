@@ -2,7 +2,7 @@ int identify2 (char *name, int size); [DONE]
 
 FILE2 create2 (char *filename);     [DONE]
 
-int delete2 (char *filename);
+int delete2 (char *filename); [DONE]
 
 FILE2 open2 (char *filename);     [DONE]
 
@@ -10,7 +10,7 @@ int close2 (FILE2 handle);     [DONE]
 
 int read2 (FILE2 handle, char *buffer, int size);	[DONE]
 
-int write2 (FILE2 handle, char *buffer, int size);
+int write2 (FILE2 handle, char *buffer, int size); [DONE]
 
 int truncate2 (FILE2 handle); [DONE]
 
@@ -18,7 +18,7 @@ int seek2 (FILE2 handle, unsigned int offset); [DONE]
 
 int mkdir2 (char *pathname);     [DONE]
 
-int rmdir2 (char *pathname);
+int rmdir2 (char *pathname); [DONE]
 
 int chdir2 (char *pathname); [DONE]
 
