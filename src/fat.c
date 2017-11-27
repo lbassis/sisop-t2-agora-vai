@@ -9,8 +9,8 @@ int get_first_fat_entry_available() {
   
   for (i = FIRST_USABLE_FAT_ENTRY; i < NUMBER_OF_FAT_ENTRIES; i++) {
     fat_entry = read_fat_entry(i);
-    printf("%i: \t", i);
-    printf("%hhx\t\n", fat_entry);
+    // printf("%i: \t", i);
+    // printf("%hhx\t\n", fat_entry);
     // printf("%i\t\n\n", fat_entry);
     
     if (fat_entry == 0) {
@@ -33,7 +33,8 @@ int read_fat_entry(int index) {
   
   int fat_index_in_sector = index - ((sector_index - 1) * 64);
   int value, offset = fat_index_in_sector * 4;
-  printf("%i => 0x%hhx%hhx%hhx%hhx \t", index, buffer[3 + offset], buffer[2 + offset], buffer[1 + offset], buffer[offset]);
+  
+  // printf("\n%i => 0x%hhx%hhx%hhx%hhx\n", index, buffer[3 + offset], buffer[2 + offset], buffer[1 + offset], buffer[offset]);
   value = (buffer[3 + offset] << 24 | buffer[2 + offset] << 16 | buffer[1 + offset] << 8 | buffer[0 + offset]);
   
   return value;
@@ -52,10 +53,19 @@ int set_fat_entry(int index, int value) {
   int fat_index_in_sector = index - ((sector_index - 1) * 64);
   int offset = fat_index_in_sector * 4;
   
-  // escrever no lugar certo do buffer o novo valor
-  buffer[offset] = (value << 24 | value << 16 | value << 8 | value);
+  // printf("Value to be put: %i\n", value);
   
-  // int new_value = (buffer[3 + offset] << 24 | buffer[2 + offset] << 16 | buffer[1 + offset] << 8 | buffer[0 + offset]);
+  // escrever no lugar certo do buffer o novo valor
+  buffer[offset + 3] = (value >> 24);
+  buffer[offset + 2] = (value >> 16);
+  buffer[offset + 1] = (value >> 8);
+  buffer[offset] = value;
+  
+  // printf("%i => %hhx %hhx %hhx %hhx\n", value,
+  //                       buffer[offset + 3],
+  //                       buffer[offset + 2],
+  //                       buffer[offset + 1],
+  //                       buffer[offset]);
 
   // escreve no setor
   write_sector(sector_index, buffer);

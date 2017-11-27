@@ -386,7 +386,6 @@ int write_list_of_records_to_cluster(RECORDS_LIST *list, int cluster_index) {
   return 0;
 }
 
-
 int subcd (char *pathname) {
 
   char *current_copy = malloc(sizeof(int)*(1 + strlen(current_path)));
@@ -429,3 +428,24 @@ int subcd (char *pathname) {
     return -1;
   }
 }
+
+// write_cluster_partially(last_cluster, buffer, buffer_pointer, relative_pointer, ammount_to_write)
+int write_cluster_partially(int cluster_index, char *buffer, int buffer_pointer, int cluster_pointer, int ammount_to_write) {
+  unsigned char cluster[CLUSTER_SIZE];
+
+  read_cluster(cluster_index, cluster);
+  printf("====================\n");
+  printf("cluster_pointer: %i\n", cluster_pointer);
+  printf("buffer_pointer: %i\n", buffer_pointer);
+  printf("====================\n");
+  memcpy(cluster + cluster_pointer, buffer + buffer_pointer, ammount_to_write);
+
+  write_cluster(cluster_index, cluster);
+
+  // read_cluster(cluster_index, cluster);
+  // printf("\nCLUSTER %i CONTENT:\n%s\n\n", cluster_index, cluster);
+
+  return 0;
+}
+
+// write_cluster_partially(current_cluster, buffer, buffer_pointer, relative_pointer, ammount_to_write)
