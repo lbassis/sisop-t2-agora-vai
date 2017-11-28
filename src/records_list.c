@@ -254,7 +254,7 @@ struct t2fs_record *create_record(BYTE typeVal, char *name, DWORD bytesFileSize,
 }
 
 GENERIC_FILE *create_generic_new_file(struct t2fs_record *record, int handler, int pointer) {
-  GENERIC_FILE *file = malloc(sizeof(GENERIC_FILE));;
+  GENERIC_FILE *file = malloc(sizeof(GENERIC_FILE));
 
   file->record = *record;
   file->handler = handler; // bota -1 pq nesse caso nao faz sentido usar o handler
@@ -372,4 +372,22 @@ int find_cluster_from_pointer(GENERIC_FILE *file) {
   }
 
   return cluster;
+}
+
+int update_bytesFileSize(GENERIC_FILE *file, RECORDS_LIST *list) {
+  RECORDS_LIST *aux;
+  aux = list;
+
+  while (aux != NULL) {
+    // achou o elemento
+    if (strcmp(aux->generic_file.record.name, file->record.name) == 0) {
+      // substitui o bytesFileSize
+      aux->generic_file.record.bytesFileSize = file->record.bytesFileSize;
+      return 0;
+    }
+    aux = aux->next;
+  }
+  
+  // se chegou aqui é pq nao achou.
+  return -1;
 }

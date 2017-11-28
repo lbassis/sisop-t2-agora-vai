@@ -62,22 +62,30 @@ void test_readdir2() {
 }
 
 void test_write2() {
-  unsigned char buffer[15];
+  create2("/testeaaa.txt");
+  
+  unsigned char buffer[30];
+  unsigned char another_buffer[50];
+  
   strcpy(buffer, "oi galero");
 
-  int handle = open2("/testeaaa.txt");
-  if (seek2(handle, 900) == 0) {
-    write2(handle, buffer, sizeof(buffer));
-  }
+  int handle = open2("testeaaa.txt");
+  
+  write2(handle, buffer, sizeof(buffer));
+  seek2(handle, 9);
+  
+  strcpy(buffer, ", como vai o6?");
+  write2(handle, buffer, sizeof(buffer));
+  seek2(handle, 0);
 
-  read2(handle, buffer, sizeof(buffer));
-  printf("\nCONTEUDO DO ARQUIVO:\n%s\n\n", buffer);
+  read2(handle, another_buffer, sizeof(another_buffer));
+  printf("\n-> Conteudo do arquivo:\n%s\n\n", another_buffer);
 }
 
 int main() {
   //test_readdir2();
   // test_readdir2();
-  //test_write2();
+  test_write2();
 
     // create2("/carissimo_doidao.txt");
     //
@@ -140,10 +148,10 @@ int main() {
   // ls();
 
 
-  rmdir2("dir1");
-  chdir2("dir1");
-  create2("file3.txt");
-  ls();
+  // rmdir2("dir1");
+  // chdir2("dir1");
+  // create2("file3.txt");
+  // ls();
   // delete2("file1.txt");
   // chdir2("dir1");
   // delete2("file2.txt");

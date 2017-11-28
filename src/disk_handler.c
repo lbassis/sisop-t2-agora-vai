@@ -449,14 +449,18 @@ int write_cluster_partially(int cluster_index, char *buffer, int buffer_pointer,
   cluster = malloc(sizeof(unsigned char)*cluster_size);
 
   read_cluster(cluster_index, cluster);
-  printf("====================\n");
-  printf("cluster_pointer: %i\n", cluster_pointer);
-  printf("buffer_pointer: %i\n", buffer_pointer);
-  printf("====================\n");
+  // printf("====================\n");
+  // printf("cluster_pointer: %i\n", cluster_pointer);
+  // printf("buffer_pointer: %i\n", buffer_pointer);
+  // printf("====================\n");
   memcpy(cluster + cluster_pointer, buffer + buffer_pointer, ammount_to_write);
-
+  
   write_cluster(cluster_index, cluster);
   free(cluster);
+  
+  // teste
+  // se for usar isso aqui embaixo, descomentar o free acima
+  
   // read_cluster(cluster_index, cluster);
   // printf("\nCLUSTER %i CONTENT:\n%s\n\n", cluster_index, cluster);
 
@@ -464,3 +468,22 @@ int write_cluster_partially(int cluster_index, char *buffer, int buffer_pointer,
 }
 
 // write_cluster_partially(current_cluster, buffer, buffer_pointer, relative_pointer, ammount_to_write)
+
+int update_bytesFileSize_in_father_dir(GENERIC_FILE *file) {
+  char *father_path = malloc(sizeof(file->path));
+  father_path = get_father_dir_path(file->path);
+
+  int father_cluster_index = get_initial_cluster_from_path(father_path);
+
+  // pega lista de entradas do diretório pai do arquivo a ser atualizado
+  RECORDS_LIST *files_in_father_dir = newList();
+  read_all_records(father_cluster_index, &files_in_father_dir);
+
+  // substitui o bytesFileSize do record antigo pelo do novo
+  if (update_bytesFileSize(file, files_in_father_dir) != 0) {
+    return -1;
+  }
+  
+  // reescreve no disco
+  return write_list_of_records_to_cluster(files_in_father_dir, father_cluster_index);
+}

@@ -10,6 +10,7 @@ typedef struct file_or_dir_record {
 	struct t2fs_record record;
 	int pointer;
 	int handler;
+	char *path;
 } GENERIC_FILE;
 
 typedef struct RECORDS_LIST {

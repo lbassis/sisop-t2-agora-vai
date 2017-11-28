@@ -112,7 +112,7 @@ FILE2 create2 (char *filename) {
   RECORDS_LIST *dir = newList();
   read_all_records(cluster_index, &dir);
 
-  print_records(dir);
+  // print_records(dir);
 }
 
 int delete2 (char *filename) {
@@ -152,11 +152,11 @@ int delete2 (char *filename) {
     read_all_records(cluster_index, &files_in_dir);
 
     //printf("printando os records do pai que eu achei:\n");
-    print_records(files_in_dir);
+    // print_records(files_in_dir);
 
     GENERIC_FILE *found_record;
     found_record = get_record_at_filename(files_in_dir, filename);
-    print_record2(found_record->record);
+    // print_record2(found_record->record);
 
 
     if (remove_record_at_filename(&files_in_dir, found_record->record.name) == 0) {
@@ -187,54 +187,55 @@ FILE2 open2 (char *filename) {
 
   // confere se ainda tem espaço na lista
   if (length >= MAX_ITEMS_IN_OPEN_LIST) {
-    //printf("\n=======\nLista com nro máximo de elementos, man\n=======\n");
+    // printf("\n=======\nLista com nro máximo de elementos, man\n=======\n");
     return -1;
   }
 
   // se chegou aqui, pode colocar na lista
+  char *absolute_file_path = malloc(sizeof(char)*(1 + strlen(current_path) + strlen(filename)));
+  strcpy(absolute_file_path, current_path);
+  strcat(absolute_file_path, filename);
 
-  char *filename_without_path = malloc(sizeof(filename));
-  char *father_path = malloc(sizeof(filename));
-
-  father_path = get_father_dir_path(filename);
-  filename_without_path = (char *) get_filename_from_path(filename);
+  char *father_path = malloc(sizeof(absolute_file_path));
+  father_path = get_father_dir_path(absolute_file_path);
 
   int cluster_index = get_initial_cluster_from_path(father_path);
-
+  
   // pega lista de entradas do diretório pai do arquivo em questão
   RECORDS_LIST *files_in_father_dir = newList();
   read_all_records(cluster_index, &files_in_father_dir);
-
+  
   struct t2fs_record *record;
-  record = find_record(files_in_father_dir, filename_without_path);
+  record = find_record(files_in_father_dir, filename);
 
   if (record == NULL) {
-    //printf("Erro ao pegar record do arquivo %s\n", filename_without_path);
+    // printf("Erro ao pegar record do arquivo %s\n", filename);
     return -1;
   }
-
+  
   int handler_available = get_fisrt_handler_available(open_files, MAX_ITEMS_IN_OPEN_LIST);
 
   // provavelmente não vai cair aqui pois se não tem espaço na lista já deve ter caído fora
   // mas é bom garantir..
   if (handler_available < 0) {
-    //printf("Erro: todos handles estão ocupados\n");
+    printf("Erro: todos handles estão ocupados\n");
     return -1;
   }
 
   // cria um elemento pra botar na lista
   GENERIC_FILE *generic_file;
   generic_file = (GENERIC_FILE *) create_generic_new_file(record, handler_available, 0);
+  generic_file->path = absolute_file_path;
 
   // insere o arquivo
   insert_record(&open_files, *generic_file);
 
   length = list_length(open_files);
 
-  //printf("\n===== open files =====\n");
-  print_records(open_files);
-  //printf("\nList length: %i\n", length);
-  //printf("\n======================\n");
+  // printf("\n===== open files =====\n");
+  // print_records(open_files);
+  // printf("\nList length: %i\n", length);
+  // printf("\n======================\n");
 
   return handler_available;
 }
@@ -279,9 +280,8 @@ int read2 (FILE2 handle, char *buffer, int size) {
     //printf("O handle %i non ecziste\n", handle);
     return -1;
   }
-
+  
   else {
-    ////printf("Reading %s\n", file->record.name);
     //// essas coisas tem que vir do Superbloco
     int sectors_per_cluster = superblock->SectorsPerCluster; // era 4
     int sector_size = SECTOR_SIZE; // era 256, essa constante tá uma porra
@@ -292,7 +292,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
     int bytes_by_cluster = sectors_per_cluster*sector_size; // isso vai ser uma variavel global calculada na leitura do superbloco!!!!!!!!!!!!!!
     occupied_clusters = ceil((float)file->record.bytesFileSize/bytes_by_cluster);
 
-    ////printf("esse arquivo ocupa %d clusters com %d\n", occupied_clusters, file->record.bytesFileSize);
+    ////// printf("esse arquivo ocupa %d clusters com %d\n", occupied_clusters, file->record.bytesFileSize);
 
     int already_read = 0; // bytes já lidos
 
@@ -309,7 +309,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
     int clusters_already_read = cluster_offset+1;
     // (bytes_by_cluster-bytes_offset)*remaining_clusters
 
-    ////printf("max bytes to read: %d\n", max_bytes_to_read);
+    ////// printf("max bytes to read: %d\n", max_bytes_to_read);
 
     while (cluster_offset > 0) { // se tem que pular algum
       current_cluster = read_fat_entry(current_cluster);
@@ -323,7 +323,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
     while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
 
       bytes_to_read = min(clusters_already_read*bytes_by_cluster - file->pointer, size-already_read); // 1024? sectorsPerCluster * SECTOR_SIZE? não sei se fica bom mudar isso não
-
+      
       read_cluster(current_cluster, cluster_read); // aqui o cluster_read tem o cluster atual
       memcpy(buffer+already_read, cluster_read+bytes_offset, bytes_to_read); // copia tudo que ainda tem pra copiar do buffer
 
@@ -332,18 +332,16 @@ int read2 (FILE2 handle, char *buffer, int size) {
       bytes_offset = file->pointer % bytes_by_cluster;
       clusters_already_read++;
 
-
       if (next_cluster != -1) { // hahahahhahahahauhdasuidhasidhashdiadsaihdsaui isso é o ffffffff
-        //printf("tem mais cluster!!!\n");
         current_cluster = next_cluster; // vai pro proximo cluster
         next_cluster = read_fat_entry(current_cluster); // prepara o proximo tb
       }
 
-      // //printf("already_read: %d\nbytes_to_read:%d\n", already_read, bytes_to_read);
+      // //// printf("already_read: %d\nbytes_to_read:%d\n", already_read, bytes_to_read);
 
     }
 
-    ////printf("leu: \n%s\n", buffer);
+    ////// printf("leu: \n%s\n", buffer);
 
     return SUCESS; // era 0
   }
@@ -355,7 +353,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
   file = get_record_at_index(open_files, handle);
 
   if(file == NULL){
-    printf("handle %i n existe", handle);
+    printf("handle %i n existe\n", handle);
     return ERROR; // era -1
   }
 
@@ -365,7 +363,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
 
   // enquanto ainda houver algo a ser escrito
   while (size > 0) {
-    printf("\n--- FALTA ESCREVER %i bytes ---\n", size);
+    // printf("\n--- FALTA ESCREVER %i bytes ---\n", size);
 
     relative_pointer = calculate_relative_pointer(file);
 
@@ -375,32 +373,37 @@ int write2 (FILE2 handle, char *buffer, int size) {
 
     // se houver ao menos 1 byte vazio no cluster
     if (bytes_available > 0 && !cluster_is_full) {
-      printf("-> cluster onde o pointer está é: %i\n", current_cluster);
-      printf("-> relative pointer: %i\n", relative_pointer);
-      printf("-> %i bytes available\n", bytes_available);
+      // printf("-> cluster onde o pointer está é: %i\n", current_cluster);
+      // printf("-> relative pointer: %i\n", relative_pointer);
+      // printf("-> %i bytes available\n", bytes_available);
       int ammount_to_write = size;
       // seta quanto deve escrever:
       // se houver mais bytes pra serem escritos do que disponíveis, escreve o que couber (bytes_available)
       // se houver mais bytes disponíveis do que pra escrever, escreve só o que precisa (size)
       if (bytes_available < size) {
-        printf("-> tem mais pra escrever do que cabe neste cluster.\n");
+        // printf("-> tem mais pra escrever do que cabe neste cluster.\n");
         ammount_to_write = bytes_available;
         cluster_is_full = 1;
       }
-
+      
       // checa se deu erro ao escrever
       if (write_cluster_partially(current_cluster, buffer, buffer_pointer, relative_pointer, ammount_to_write) != 0) {
         printf("Erro ao escrever\n");
         return ERROR; // era -1
       }
-
-      printf("-> will write from buffer starting at index %i\n", buffer_pointer);
-      printf("-> wrote %i bytes\n", ammount_to_write);
+      // printf("-> will write from buffer starting at index %i\n", buffer_pointer);
+      // printf("-> wrote %i bytes\n", ammount_to_write);
 
       size -= ammount_to_write;
       file->record.bytesFileSize += ammount_to_write;
       file->pointer += ammount_to_write;
       buffer_pointer += ammount_to_write;
+      
+      // atualiza a entrada no diretorio pai pra refletir o nro de bytes escritos
+      if (update_bytesFileSize_in_father_dir(file) != 0) {
+        // printf("Erro ao atualizar bytesFileSize do arquivo: %s\n", file->record.name);
+        return -1;
+      }
 
     } else {
       // se não houver mais espaço na cluster,
@@ -416,8 +419,8 @@ int write2 (FILE2 handle, char *buffer, int size) {
         set_fat_entry(current_cluster, next_cluster);
         set_fat_entry(next_cluster, FAT_ENTRY_OCCUPIED);
 
-        printf("-> não há mais bytes available no cluster %i\n", current_cluster);
-        printf("-> alocarei o cluster %i\n", next_cluster);
+        // printf("-> não há mais bytes available no cluster %i\n", current_cluster);
+        // printf("-> alocarei o cluster %i\n", next_cluster);
       }
 
       // avança para o próximo cluster
@@ -425,9 +428,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
       cluster_is_full = 0;
     }
   }
-
-  printf("-> nada mais a escrever\n");
-
+  
   return SUCESS;
 }
 
@@ -527,7 +528,7 @@ int seek2 (FILE2 handle, unsigned int offset) {
   }
 
   if (handle < 0 || handle > MAX_ITEMS_IN_OPEN_LIST) {
-    //printf("handle fora dos limites, man\n");
+    // printf("handle fora dos limites, man\n");
     return ERROR;
   }
 
@@ -537,12 +538,12 @@ int seek2 (FILE2 handle, unsigned int offset) {
     file = get_record_at_index(open_files, handle);
 
     if (file == NULL) {
-      //printf("O handle %i non ecziste\n", handle);
+      // printf("O handle %i non ecziste\n", handle);
       return ERROR;
     }
 
     if (file->record.bytesFileSize < offset && offset != -1) {
-      //printf("o arquivo nao é tao grande, champs\n");
+      // printf("o arquivo nao é tao grande, champs\n");
       return ERROR;
     }
 
@@ -632,11 +633,11 @@ int mkdir2 (char *pathname) {
 
   read_all_records(father_cluster_index, &dir);
   //printf("\n\n=== %s ===\n", father_path);
-  print_records(dir);
+  // print_records(dir);
 
   read_all_records(record->firstCluster, &dir);
   //printf("\n\n=== %s ===\n", pathname);
-  print_records(dir);
+  // print_records(dir);
 }
 
 int rmdir2 (char *pathname) {
@@ -860,7 +861,7 @@ int closedir2 (DIR2 handle) {
   }
 
   if (remove_record_at_index(&open_dirs, handle) != 0) {
-    //printf("Erro ao fechar dir %i\n", handle);
+    // printf("Erro ao fechar dir %i\n", handle);
     return ERROR;
   }
 
@@ -869,7 +870,7 @@ int closedir2 (DIR2 handle) {
   length = list_length(open_dirs);
 
   //printf("\n===== open dirs =====\n");
-  print_records(open_dirs);
+  // print_records(open_dirs);
   //printf("\nList length: %i\n", length);
 
   return SUCESS;
