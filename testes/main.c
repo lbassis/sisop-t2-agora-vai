@@ -142,8 +142,8 @@ int main() {
 
   rmdir2("dir1");
   chdir2("dir1");
+  create2("file3.txt");
   ls();
-
   // delete2("file1.txt");
   // chdir2("dir1");
   // delete2("file2.txt");

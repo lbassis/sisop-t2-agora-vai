@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <disk_handler.h>
 
+extern struct t2fs_superbloco *superblock;
+
 RECORDS_LIST *newList() {
   return NULL;
 }
@@ -332,8 +334,9 @@ int find_last_cluster(GENERIC_FILE *file) {
 int calculate_relative_pointer(GENERIC_FILE *file) {
   int pointer = file->pointer;
 
-  while (pointer >= 1024) {
-    pointer -= 1024;
+  int bytes_per_cluster = SECTOR_SIZE * superblock->SectorsPerCluster;
+  while (pointer >= bytes_per_cluster) {
+    pointer -= bytes_per_cluster;
   }
 
   return pointer;
@@ -342,23 +345,27 @@ int calculate_relative_pointer(GENERIC_FILE *file) {
 int calculate_bytes_available_in_last_cluster(GENERIC_FILE *file) {
   int occupied = file->record.bytesFileSize;
 
-  while (occupied > 1024) {
-    occupied -= 1024;
+  int bytes_per_cluster = SECTOR_SIZE * superblock->SectorsPerCluster;
+
+  while (occupied > bytes_per_cluster) {
+    occupied -= bytes_per_cluster;
   }
 
-  printf("====> livres: %i\n", CLUSTER_SIZE - occupied);
+  printf("====> livres: %i\n", bytes_per_cluster - occupied);
 
-  return CLUSTER_SIZE - occupied;
+  return bytes_per_cluster - occupied;
 }
 
 int find_cluster_from_pointer(GENERIC_FILE *file) {
   int pointer = file->pointer;
   int cluster = file->record.firstCluster;
 
+  int bytes_per_cluster = SECTOR_SIZE * superblock->SectorsPerCluster;
+
   // enquanto o valor do ponteiro indicar que tem mais de 1 cluster a frente
-  while (pointer > 1024) {
+  while (pointer > bytes_per_cluster) {
     // diminui 1024
-    pointer -= 1024;
+    pointer -= bytes_per_cluster;
 
     // e pega o próximo cluster
     cluster = read_fat_entry(cluster);

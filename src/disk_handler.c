@@ -5,6 +5,8 @@
 #include <records_list.h>
 #include <string.h>
 
+extern struct t2fs_superbloco *superblock;
+
 void print_sector(int sector) {
   int i, j;
   int columns = 16;
@@ -22,7 +24,7 @@ void print_sector(int sector) {
 
 void print_cluster(char *buffer) {
   int i, j;
-  int size = CLUSTER_SIZE;
+  int size = superblock->SectorsPerCluster * SECTOR_SIZE;
   int columns = 16;
 
   for (i = 0; i < size / columns; i++) {
@@ -84,7 +86,7 @@ void print_record2(struct t2fs_record record) {
 
 void read_cluster(int cluster_index, char *buffer) {
   int i = 0, j = 0, offset = 0;
-  int first_sector = DATA_SECTOR_START + (cluster_index * SECTORS_PER_CLUSTER);
+  int first_sector = superblock->DataSectorStart + (cluster_index * superblock->SectorsPerCluster);
   unsigned char local_buffer[SECTOR_SIZE];
 
   do {
@@ -95,13 +97,16 @@ void read_cluster(int cluster_index, char *buffer) {
 
     offset += SECTOR_SIZE; // b | era 256, ofc sector_size
     i ++;
-    } while(i < 4); // sectors per cluster
+  } while(i < superblock->SectorsPerCluster); // sectors per cluster
 }
 
 void read_all_records(int cluster_index, RECORDS_LIST **records) {
   int i = 0;
-  int number_of_records = CLUSTER_SIZE / sizeof(struct t2fs_record);
-  unsigned char buffer[CLUSTER_SIZE];
+  int cluster_size = superblock->SectorsPerCluster * SECTOR_SIZE;
+
+  int number_of_records = cluster_size / sizeof(struct t2fs_record);
+  unsigned char *buffer;
+  buffer = malloc(sizeof(unsigned char)*cluster_size);
   // struct t2fs_record record;
   GENERIC_FILE generic_file;
 
@@ -118,13 +123,15 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
       insert_record(records, generic_file);
     }
   }
+
+  free(buffer);
   ////printf("\n\n");
 
   //print_records(*records);
 }
 
 int get_initial_cluster_from_path(char *path) {
-    int root_cluster = 2; // superblock->RootDirCluster; deveria ser este valor.
+    int root_cluster = superblock->RootDirCluster; // superblock->RootDirCluster; deveria ser este valor.
 
     RECORDS_LIST *directory;
     GENERIC_FILE current_generic_file;
@@ -153,13 +160,6 @@ int get_initial_cluster_from_path(char *path) {
         }
     }
 
-    // se saiu do while numa boa é pq achou tudo
-
-    // //printf("\n\nresultado do ls em %s \n", current_path);
-    // RECORDS_LIST *testano;
-    // read_all_records(current_initial_cluster, &testano);
-    // print_records(testano);
-
     return current_initial_cluster;
 }
 
@@ -176,27 +176,29 @@ unsigned int first_empty_cluster() {
     int i = 0, j, k;
     int zeroes, found = 0;
 
-    int fat_sectors = 128; //superblock->DataSectorStart - superblock->pFATSectorStart; // dataSectorStart - fatSectorStart  int fat_sectors = 128
-    int first_sector = 1; // superblock->pFATSectorStart; //superblock.fat_sector_start ERA 1
+    int fat_sectors = superblock->DataSectorStart - superblock->pFATSectorStart; //superblock->DataSectorStart - superblock->pFATSectorStart; // dataSectorStart - fatSectorStart  int fat_sectors = 128
+    int first_sector = superblock->pFATSectorStart;//1; // superblock->pFATSectorStart; //superblock.fat_sector_start ERA 1
+
+    int sectors_per_cluster = superblock->SectorsPerCluster;
 
     while (i < 1 && !found) {  // enquanto tiver setores e nao tiver achado um livre
         read_sector(first_sector+i, buffer);
 
         // aqui tem que ler de 4 em 4 chars pra ver se acha um só de 0s
         j = 0;
-        while (j < fat_sectors/4) { // numero de valores associados a cluster
+        while (j < fat_sectors/sectors_per_cluster) { // numero de valores associados a cluster
             k = 0;
             zeroes = 0; // numero de 0s encontrados
             //printf("testando o cluster %d\n", i+j);
-            while (k < 4) { // cada cluster tem 8 chars
+            while (k < sectors_per_cluster) { // cada cluster tem 8 chars
                 //printf("%hhx ", buffer[j*4+k]);
-                if (buffer[j*4+k] == 0) {
+                if (buffer[j*sectors_per_cluster+k] == 0) {
                     zeroes++;
                 }
                 k++;
             }
             //printf("\n");
-            if (zeroes == 4) { // tudo zerado retorna o cluster que é assim
+            if (zeroes == sectors_per_cluster) { // tudo zerado retorna o cluster que é assim
                 //printf("achou 4 zeros no %d\n", i+j);
                 return i+j; // substituir isso por current_sector
             }
@@ -295,7 +297,7 @@ char *get_father_dir_path(char *path) {
 int write_cluster(int cluster_index, char *buffer) {
   // faz a mágica aqui
   int i = 0, j = 0, offset = 0;
-  int first_sector = DATA_SECTOR_START + (cluster_index * SECTORS_PER_CLUSTER);
+  int first_sector = superblock->DataSectorStart + (cluster_index * superblock->SectorsPerCluster);
   unsigned char sector_buffer[SECTOR_SIZE];
 
   do {
@@ -313,7 +315,7 @@ int write_cluster(int cluster_index, char *buffer) {
 
 void zero_cluster(int cluster_index) {
 
-  int sectors_per_cluster = 4;
+  int sectors_per_cluster = superblock->SectorsPerCluster;
   int i;
   char buffer[SECTOR_SIZE*sectors_per_cluster];
 
@@ -325,9 +327,13 @@ void zero_cluster(int cluster_index) {
 
 void truncate_cluster(int cluster_index, int offset) {
 
-  int cluster_size = SECTOR_SIZE * 4; // SECTOR_SIZE * superblock->SectorsPerCluster; // 1024
-  char buffer[SECTOR_SIZE * 4]; // SECTOR_SIZE * superblock->SectorsPerCluster]; // 1024
-  char cluster_content[SECTOR_SIZE * 4]; // SECTOR_SIZE * superblock->SectorsPerCluster];  // 1024
+  int cluster_size = SECTOR_SIZE * superblock->SectorsPerCluster; // SECTOR_SIZE * superblock->SectorsPerCluster; // 1024
+  char *buffer, *cluster_content;
+
+  buffer = malloc(sizeof(char)*SECTOR_SIZE*superblock->SectorsPerCluster);
+  cluster_content = malloc(sizeof(char)*SECTOR_SIZE*superblock->SectorsPerCluster);
+  //char buffer[SECTOR_SIZE * 4]; // SECTOR_SIZE * superblock->SectorsPerCluster]; // 1024
+  //char cluster_content[SECTOR_SIZE * 4]; // SECTOR_SIZE * superblock->SectorsPerCluster];  // 1024
 
   int i = 0;
 
@@ -342,6 +348,8 @@ void truncate_cluster(int cluster_index, int offset) {
   }
 
   write_cluster(cluster_index, buffer);
+  free(buffer);
+  free(cluster_content);
 }
 
 void write_record_to_buffer(char *buffer, int start, struct t2fs_record *record) {
@@ -353,16 +361,20 @@ void write_record_to_buffer(char *buffer, int start, struct t2fs_record *record)
 
 void init_buffer_with_zeros(char *buffer) {
   int i;
-  for (i = 0; i < CLUSTER_SIZE; i++) {
+  int cluster_size = superblock->SectorsPerCluster * SECTOR_SIZE;
+
+  for (i = 0; i < cluster_size; i++) {
     buffer[i] = 0;
   }
 }
 
 int write_list_of_records_to_cluster(RECORDS_LIST *list, int cluster_index) {
   int offset = 0, i = 0;
+  int cluster_size = superblock->SectorsPerCluster * SECTOR_SIZE;
 
   // coloca zero em todo o buffer do cluster
-  char buffer[CLUSTER_SIZE];
+  char *buffer;
+  buffer = malloc(sizeof(char)*cluster_size);
   init_buffer_with_zeros(buffer);
 
   RECORDS_LIST *aux;
@@ -380,6 +392,8 @@ int write_list_of_records_to_cluster(RECORDS_LIST *list, int cluster_index) {
 
   // escreve as infos contidas no buffer pro disco
   write_cluster(cluster_index, buffer);
+
+  free(buffer);
 
   return SUCESS;
 }
@@ -429,7 +443,10 @@ int subcd (char *pathname) {
 
 // write_cluster_partially(last_cluster, buffer, buffer_pointer, relative_pointer, ammount_to_write)
 int write_cluster_partially(int cluster_index, char *buffer, int buffer_pointer, int cluster_pointer, int ammount_to_write) {
-  unsigned char cluster[CLUSTER_SIZE];
+
+  int cluster_size = superblock->SectorsPerCluster * SECTOR_SIZE;
+  unsigned char *cluster;
+  cluster = malloc(sizeof(unsigned char)*cluster_size);
 
   read_cluster(cluster_index, cluster);
   printf("====================\n");
@@ -439,7 +456,7 @@ int write_cluster_partially(int cluster_index, char *buffer, int buffer_pointer,
   memcpy(cluster + cluster_pointer, buffer + buffer_pointer, ammount_to_write);
 
   write_cluster(cluster_index, cluster);
-
+  free(cluster);
   // read_cluster(cluster_index, cluster);
   // printf("\nCLUSTER %i CONTENT:\n%s\n\n", cluster_index, cluster);
 

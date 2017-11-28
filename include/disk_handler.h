@@ -10,13 +10,6 @@
 #include <records_list.h>
 
 
-#define DATA_SECTOR_START 129
-
-#define SECTORS_PER_CLUSTER 4
-
-#define CLUSTER_SIZE 1024
-
-
 void read_cluster(int cluster_index, char *buffer);
 struct t2fs_record read_record(char *buffer, int start);
 void read_all_records(int cluster_index, RECORDS_LIST **records);

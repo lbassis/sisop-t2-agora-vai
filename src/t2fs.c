@@ -19,6 +19,7 @@ RECORDS_LIST *open_dirs;
 int has_initialized = 0;
 
 void init() {
+  superblock = malloc(sizeof(struct t2fs_superbloco));
   readSuperBlock(superblock);
 
   current_path = malloc(sizeof(int));
@@ -50,47 +51,10 @@ int identify2 (char *name, int size) {
     }
 
 return 0;
-
-  // apenas por motivo de teste, aqui tem chamadas às funções do superblock.c
-  // //printf("\n== Printando diretamente do identify2 ==s\n");
-  // diskId();
-  // SUPERBLOCK s;
-  // readSuperBlock(&s);
-  // printSuperBlock(s);
 }
 
 FILE2 create2 (char *filename) {
 
-  // ASSIS DOIDAO DIZ:
-  //
-  // considerando que vai criar sempre no current_path (nao pode incluir path no nome do arquivo):
-
-  // 1. encontra o primeiro cluster livre e atribui a ele ff ff ff ff
-  // 2. abre o diretorio do current path
-  // 2.1 se nao encontrar -> erro
-  // 3. adiciona a nova entrada ao diretorio: typeval = 1, name = filename, bytesfilesize = 0, firstcluster = valor encontrado em 1.
-  // 4. fecha o diretorio
-
-  // acredito que sempre crie vazio, entao nao precisa mexer no cluster dele
-  //
-  // ================================================================================
-  //
-  // BORANGA DOIDAO DIZ:
-  //
-  // o filename de entrada é ABSOLUTO, conforme t2fs.h linha 91
-
-  // 1. encontra a primeira entrada da fat livre e atribui a ela ff
-  // 2. vê se o diretório do dir pai existe (pega as entradas dele)
-  // 2.1 se nao encontrar -> erro
-  // 2.2 cria um GENERIC_FILE e um record pra este arquivo novo
-  // 3. adiciona a nova entrada às entradas do diretório diretorio: typeval = 1, name = filename, bytesfilesize = 0, firstcluster = valor encontrado em 1.
-  //    escreve no disco
-  //    escreve setor? ou cluster inteiro (mais fácil, escreve a lista toda) ?
-  // 4. fecha o diretorio
-
-  // de fato, cria vazio, entao nao precisa mexer no cluster dele
-
-  // pega o nome do pai
   if (!has_initialized) {
     init();
     has_initialized = 1;
@@ -153,8 +117,6 @@ FILE2 create2 (char *filename) {
 
 int delete2 (char *filename) {
 
-  printf("delete\n");
-
   if (!has_initialized) {
     init();
     has_initialized = 1;
@@ -194,19 +156,16 @@ int delete2 (char *filename) {
 
     GENERIC_FILE *found_record;
     found_record = get_record_at_filename(files_in_dir, filename);
-    printf("esse é o que vai pro xilindró:\n");
     print_record2(found_record->record);
 
 
     if (remove_record_at_filename(&files_in_dir, found_record->record.name) == 0) {
-      printf("removeu!!\n");
       write_list_of_records_to_cluster(files_in_dir, cluster_index);
-      printf("escreveu!!\n");
-      //close2(file);
+      close2(file);
       return 0;
     }
     else {
-      //close2(file);
+      close2(file);
       return -1;
     }
     //print_records(files_in_father_dir);
@@ -340,7 +299,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
     int cluster_offset = floor((float)file->pointer/bytes_by_cluster);
     int bytes_offset = file->pointer % bytes_by_cluster;
 
-    int current_cluster = file->record.firstCluster;// + cluster_offset;
+    int current_cluster = file->record.firstCluster;
     int next_cluster = read_fat_entry(file->record.firstCluster);
     int remaining_clusters = occupied_clusters - cluster_offset;
 
@@ -363,7 +322,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
 
     while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
 
-      bytes_to_read = min(clusters_already_read*1024 - file->pointer, size-already_read); // 1024? sectorsPerCluster * SECTOR_SIZE? não sei se fica bom mudar isso não
+      bytes_to_read = min(clusters_already_read*bytes_by_cluster - file->pointer, size-already_read); // 1024? sectorsPerCluster * SECTOR_SIZE? não sei se fica bom mudar isso não
 
       read_cluster(current_cluster, cluster_read); // aqui o cluster_read tem o cluster atual
       memcpy(buffer+already_read, cluster_read+bytes_offset, bytes_to_read); // copia tudo que ainda tem pra copiar do buffer
@@ -410,7 +369,8 @@ int write2 (FILE2 handle, char *buffer, int size) {
 
     relative_pointer = calculate_relative_pointer(file);
 
-    bytes_available = CLUSTER_SIZE - relative_pointer;
+    int bytes_per_cluster = SECTOR_SIZE*superblock->SectorsPerCluster;
+    bytes_available = bytes_per_cluster - relative_pointer;
 
 
     // se houver ao menos 1 byte vazio no cluster
@@ -536,7 +496,7 @@ int truncate2 (FILE2 handle) {
     if (is_first_cluster) {
       //printf("vai truncar o cluster %d\n", current_cluster);
       set_fat_entry(current_cluster, -1); // diz que o cluster atual é o ultimo do arquivo
-      truncate_cluster(current_cluster, file->pointer%1024); // complicado mudar isso, n sei se vale
+      truncate_cluster(current_cluster, file->pointer % (SECTOR_SIZE*superblock->SectorsPerCluster)); // complicado mudar isso, n sei se vale
       is_first_cluster = 0;
     }
 
@@ -644,7 +604,8 @@ int mkdir2 (char *pathname) {
 
   // cria um record
   struct t2fs_record *record;
-  record = (struct t2fs_record *) create_record(TYPEVAL_DIRETORIO, name, CLUSTER_SIZE, fat_entry);
+  int bytes_per_cluster = SECTOR_SIZE * superblock->SectorsPerCluster;
+  record = (struct t2fs_record *) create_record(TYPEVAL_DIRETORIO, name, bytes_per_cluster, fat_entry);
 
   // cria um elemento pra botar na lista
   GENERIC_FILE *new_file;
@@ -738,7 +699,7 @@ int chdir2 (char *pathname) {
   int subresult = 0;
 
   strcpy(path_copy, pathname);
-  buffer = strtok(path_copy, "0/");
+  buffer = strtok(path_copy, "/");
 
   if (subcd(buffer) == 0) {
 
