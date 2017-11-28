@@ -5,8 +5,6 @@
 #include <records_list.h>
 #include <string.h>
 
-
-
 void print_sector(int sector) {
   int i, j;
   int columns = 16;
@@ -87,7 +85,7 @@ void print_record2(struct t2fs_record record) {
 void read_cluster(int cluster_index, char *buffer) {
   int i = 0, j = 0, offset = 0;
   int first_sector = DATA_SECTOR_START + (cluster_index * SECTORS_PER_CLUSTER);
-  unsigned char local_buffer[256];
+  unsigned char local_buffer[SECTOR_SIZE];
 
   do {
     read_sector(first_sector + i, local_buffer);
@@ -95,7 +93,7 @@ void read_cluster(int cluster_index, char *buffer) {
       buffer[j + offset] = local_buffer[j];
     }
 
-    offset += 256; // b
+    offset += SECTOR_SIZE; // b | era 256, ofc sector_size
     i ++;
     } while(i < 4); // sectors per cluster
 }
@@ -116,7 +114,7 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
 
     generic_file.record = read_record(buffer, offset);
     // Aqui deve inserir o record na lista SE E SOMENTE SE o TypeVal dele não for 0
-    if (generic_file.record.TypeVal != 0) {
+    if (generic_file.record.TypeVal != TYPEVAL_INVALIDO) { // era  generic_file.record.TypeVal != 0 .
       insert_record(records, generic_file);
     }
   }
@@ -126,7 +124,7 @@ void read_all_records(int cluster_index, RECORDS_LIST **records) {
 }
 
 int get_initial_cluster_from_path(char *path) {
-    int root_cluster = 2; // TEM QUE ARRUMAR ///////////////////////////////////////
+    int root_cluster = 2; // superblock->RootDirCluster; deveria ser este valor.
 
     RECORDS_LIST *directory;
     GENERIC_FILE current_generic_file;
@@ -151,7 +149,7 @@ int get_initial_cluster_from_path(char *path) {
         }
 
         else {
-            return -1;
+            return ERROR;
         }
     }
 
@@ -178,8 +176,8 @@ unsigned int first_empty_cluster() {
     int i = 0, j, k;
     int zeroes, found = 0;
 
-    int fat_sectors = 128; //dataSectorStart - fatSectorStart
-    int first_sector = 1; //superblock.fat_sector_start
+    int fat_sectors = 128; //superblock->DataSectorStart - superblock->pFATSectorStart; // dataSectorStart - fatSectorStart  int fat_sectors = 128
+    int first_sector = 1; // superblock->pFATSectorStart; //superblock.fat_sector_start ERA 1
 
     while (i < 1 && !found) {  // enquanto tiver setores e nao tiver achado um livre
         read_sector(first_sector+i, buffer);
@@ -298,7 +296,7 @@ int write_cluster(int cluster_index, char *buffer) {
   // faz a mágica aqui
   int i = 0, j = 0, offset = 0;
   int first_sector = DATA_SECTOR_START + (cluster_index * SECTORS_PER_CLUSTER);
-  unsigned char sector_buffer[256];
+  unsigned char sector_buffer[SECTOR_SIZE];
 
   do {
     for (j = 0; j < sizeof(sector_buffer); j++) {
@@ -306,11 +304,11 @@ int write_cluster(int cluster_index, char *buffer) {
     }
     write_sector(first_sector + i, sector_buffer);
 
-    offset += 256;
+    offset += SECTOR_SIZE;
     i ++;
     } while(i < 4);
 
-  return 0;
+  return SUCESS;
 }
 
 void zero_cluster(int cluster_index) {
@@ -327,9 +325,9 @@ void zero_cluster(int cluster_index) {
 
 void truncate_cluster(int cluster_index, int offset) {
 
-  int cluster_size = 1024;
-  char buffer[1024];
-  char cluster_content[1024];
+  int cluster_size = SECTOR_SIZE * 4; // SECTOR_SIZE * superblock->SectorsPerCluster; // 1024
+  char buffer[SECTOR_SIZE * 4]; // SECTOR_SIZE * superblock->SectorsPerCluster]; // 1024
+  char cluster_content[SECTOR_SIZE * 4]; // SECTOR_SIZE * superblock->SectorsPerCluster];  // 1024
 
   int i = 0;
 
@@ -383,7 +381,7 @@ int write_list_of_records_to_cluster(RECORDS_LIST *list, int cluster_index) {
   // escreve as infos contidas no buffer pro disco
   write_cluster(cluster_index, buffer);
 
-  return 0;
+  return SUCESS;
 }
 
 int subcd (char *pathname) {
@@ -420,12 +418,12 @@ int subcd (char *pathname) {
     }
 
     closedir2(dir);
-    return 0;
+    return SUCESS;
   }
 
   else {
     strcpy(current_path, current_copy);
-    return -1;
+    return ERROR;
   }
 }
 
@@ -445,7 +443,7 @@ int write_cluster_partially(int cluster_index, char *buffer, int buffer_pointer,
   // read_cluster(cluster_index, cluster);
   // printf("\nCLUSTER %i CONTENT:\n%s\n\n", cluster_index, cluster);
 
-  return 0;
+  return SUCESS;
 }
 
 // write_cluster_partially(current_cluster, buffer, buffer_pointer, relative_pointer, ammount_to_write)
