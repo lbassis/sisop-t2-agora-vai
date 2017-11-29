@@ -130,7 +130,7 @@ void readSuperBlock(struct t2fs_superbloco *superblock) {
   superblock->pFATSectorStart = readFatSectorStart(buffer);
   superblock->RootDirCluster = readRootDirCluster(buffer);
   superblock->DataSectorStart = readDataSectorStart(buffer);
-  printSuperBlock(*superblock);
+  //printSuperBlock(*superblock);
   //
   // fclose(file);
 }
@@ -140,16 +140,3 @@ void printSuperBlock(struct t2fs_superbloco superblock) {
     printf("Disk Size: %u\nNumber of Sectors: %u\nSectors per Cluster: %u\nFAT Sector Start: %u\nRoot Directory Cluster: %u\nData Sector Start: %u\n", superblock.DiskSize, superblock.NofSectors, superblock.SectorsPerCluster, superblock.pFATSectorStart, superblock.RootDirCluster, superblock.DataSectorStart);
 
 }
-
-// int main() {
-//
-//   diskId();
-//   SUPERBLOCK s;
-//   readSuperBlock();
-//
-//   int dataStart = superblock.dataSectorStart * SECTOR_SIZE;
-//   int rootFatEntry = dataStart + superblock.rootDirCluster * superblock.sectorsPerCluster * SECTOR_SIZE;
-//
-//   printf("%d\n", rootFatEntry);
-//
-// }

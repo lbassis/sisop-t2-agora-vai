@@ -68,15 +68,6 @@ struct t2fs_record *find_record(RECORDS_LIST *list, char *name) {
 }
 
 void print_record(struct t2fs_record record) {
-  //printf("=========================\n\n");
-  //printf("TypeVal: %hhx\n", record.TypeVal);
-  //printf("name: %s\n", record.name);
-  //printf("bytesFileSize: %i\n", record.bytesFileSize);
-  //printf("firstCluster: %i\n\n", record.firstCluster);
-}
-
-
-void print_record2(struct t2fs_record record) {
   printf("=========================\n\n");
   printf("TypeVal: %hhx\n", record.TypeVal);
   printf("name: %s\n", record.name);
@@ -163,13 +154,6 @@ int get_initial_cluster_from_path(char *path) {
     return current_initial_cluster;
 }
 
-void ls() {
-    printf("ls no %s:\n", current_path);
-    RECORDS_LIST *a;
-    read_all_records(get_initial_cluster_from_path(current_path), &a);
-    print_records2(a);
-}
-
 unsigned int first_empty_cluster() {
 
     char buffer[SECTOR_SIZE];
@@ -207,6 +191,13 @@ unsigned int first_empty_cluster() {
         i++;
     }
 
+}
+
+void ls() {
+    printf("ls no %s:\n", current_path);
+    RECORDS_LIST *a;
+    read_all_records(get_initial_cluster_from_path(current_path), &a);
+    print_records(a);
 }
 
 char *get_filename_from_path(char *path) {
@@ -454,13 +445,13 @@ int write_cluster_partially(int cluster_index, char *buffer, int buffer_pointer,
   // printf("buffer_pointer: %i\n", buffer_pointer);
   // printf("====================\n");
   memcpy(cluster + cluster_pointer, buffer + buffer_pointer, ammount_to_write);
-  
+
   write_cluster(cluster_index, cluster);
   free(cluster);
-  
+
   // teste
   // se for usar isso aqui embaixo, descomentar o free acima
-  
+
   // read_cluster(cluster_index, cluster);
   // printf("\nCLUSTER %i CONTENT:\n%s\n\n", cluster_index, cluster);
 
@@ -483,7 +474,7 @@ int update_bytesFileSize_in_father_dir(GENERIC_FILE *file) {
   if (update_bytesFileSize(file, files_in_father_dir) != 0) {
     return -1;
   }
-  
+
   // reescreve no disco
   return write_list_of_records_to_cluster(files_in_father_dir, father_cluster_index);
 }

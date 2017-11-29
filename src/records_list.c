@@ -42,24 +42,12 @@ void print_records(RECORDS_LIST *q) {
 
   //printf("Printing list:\n\n");
   while (aux != NULL) {
-    // print_record(aux->generic_file.record);
+    print_record(aux->generic_file.record);
     //printf("%s no cluster %d\n", aux->generic_file.record.name, aux->generic_file.record.firstCluster);
     aux = aux->next;
   }
 }
 
-void print_records2(RECORDS_LIST *q) {
-
-  RECORDS_LIST *aux;
-  aux = q;
-
-  //printf("Printing list:\n\n");
-  while (aux != NULL) {
-    // print_record(aux->generic_file.record);
-    printf("%s no cluster %d\n", aux->generic_file.record.name, aux->generic_file.record.firstCluster);
-    aux = aux->next;
-  }
-}
 
 void destroy_list(RECORDS_LIST **q) {
 
@@ -387,7 +375,7 @@ int update_bytesFileSize(GENERIC_FILE *file, RECORDS_LIST *list) {
     }
     aux = aux->next;
   }
-  
+
   // se chegou aqui é pq nao achou.
   return -1;
 }

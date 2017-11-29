@@ -6,35 +6,6 @@
 #include <fat.h>
 #include <data.h>
 
-// int main() {
-//   // int i;
-//   // for (i = 0; i < 11; i++) {
-//   //   open2(NULL);
-//   // }
-//
-//   // open2(NULL);
-//   // open2(NULL);
-//   // open2(NULL);
-//   //
-//   // close2(0);
-//
-//   int i;
-//
-//   init();
-//   for (i = 0; i < 10; i++) {
-//     int value = read_fat_entry(i);
-//     printf("\nindex: %i\nvalue: %hhx\n", i, value);
-//   }
-//
-//   //get_initial_cluster_from_path("/dir1");
-//   // ls();
-//   //chdir2("dir1");
-//   //ls();
-//   printf("%d\n", first_empty_cluster());
-//
-//   return 0;
-// }
-
 void print_dirent2(DIRENT2 *dir) {
   printf("name: %s\n", dir->name);
   printf("fileType: %i\n", dir->fileType);
@@ -83,9 +54,8 @@ void test_write2() {
 }
 
 int main() {
-  //test_readdir2();
-  // test_readdir2();
   test_write2();
-
+  chdir2("..");
+  ls();
     return 0;
 }
