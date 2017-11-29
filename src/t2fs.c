@@ -155,7 +155,7 @@ int delete2 (char *filename) {
     // print_records(files_in_dir);
 
     GENERIC_FILE *found_record;
-    found_record = get_record_at_filename(files_in_dir, filename);
+    found_record = (GENERIC_FILE*)get_record_at_filename(files_in_dir, filename);
     // print_record2(found_record->record);
 
 
@@ -200,11 +200,11 @@ FILE2 open2 (char *filename) {
   father_path = get_father_dir_path(absolute_file_path);
 
   int cluster_index = get_initial_cluster_from_path(father_path);
-  
+
   // pega lista de entradas do diretório pai do arquivo em questão
   RECORDS_LIST *files_in_father_dir = newList();
   read_all_records(cluster_index, &files_in_father_dir);
-  
+
   struct t2fs_record *record;
   record = find_record(files_in_father_dir, filename);
 
@@ -212,7 +212,7 @@ FILE2 open2 (char *filename) {
     // printf("Erro ao pegar record do arquivo %s\n", filename);
     return -1;
   }
-  
+
   int handler_available = get_fisrt_handler_available(open_files, MAX_ITEMS_IN_OPEN_LIST);
 
   // provavelmente não vai cair aqui pois se não tem espaço na lista já deve ter caído fora
@@ -280,7 +280,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
     //printf("O handle %i non ecziste\n", handle);
     return -1;
   }
-  
+
   else {
     //// essas coisas tem que vir do Superbloco
     int sectors_per_cluster = superblock->SectorsPerCluster; // era 4
@@ -323,7 +323,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
     while (already_read < max_bytes_to_read) { // aqui que a magia acontece (depois tem que conferir se nao passou do tamanho do arquivo!!!!!!!!!!!!!!!!!!!!!)
 
       bytes_to_read = min(clusters_already_read*bytes_by_cluster - file->pointer, size-already_read); // 1024? sectorsPerCluster * SECTOR_SIZE? não sei se fica bom mudar isso não
-      
+
       read_cluster(current_cluster, cluster_read); // aqui o cluster_read tem o cluster atual
       memcpy(buffer+already_read, cluster_read+bytes_offset, bytes_to_read); // copia tudo que ainda tem pra copiar do buffer
 
@@ -385,7 +385,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
         ammount_to_write = bytes_available;
         cluster_is_full = 1;
       }
-      
+
       // checa se deu erro ao escrever
       if (write_cluster_partially(current_cluster, buffer, buffer_pointer, relative_pointer, ammount_to_write) != 0) {
         printf("Erro ao escrever\n");
@@ -398,7 +398,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
       file->record.bytesFileSize += ammount_to_write;
       file->pointer += ammount_to_write;
       buffer_pointer += ammount_to_write;
-      
+
       // atualiza a entrada no diretorio pai pra refletir o nro de bytes escritos
       if (update_bytesFileSize_in_father_dir(file) != 0) {
         // printf("Erro ao atualizar bytesFileSize do arquivo: %s\n", file->record.name);
@@ -428,7 +428,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
       cluster_is_full = 0;
     }
   }
-  
+
   return SUCESS;
 }
 

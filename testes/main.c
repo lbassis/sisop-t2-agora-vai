@@ -63,17 +63,17 @@ void test_readdir2() {
 
 void test_write2() {
   create2("/testeaaa.txt");
-  
+
   unsigned char buffer[30];
   unsigned char another_buffer[50];
-  
+
   strcpy(buffer, "oi galero");
 
   int handle = open2("testeaaa.txt");
-  
+
   write2(handle, buffer, sizeof(buffer));
   seek2(handle, 9);
-  
+
   strcpy(buffer, ", como vai o6?");
   write2(handle, buffer, sizeof(buffer));
   seek2(handle, 0);
@@ -86,87 +86,6 @@ int main() {
   //test_readdir2();
   // test_readdir2();
   test_write2();
-
-    // create2("/carissimo_doidao.txt");
-    //
-    // int handle1 = opendir2("/outro_dir");
-    // int handle2 = opendir2("/dir1");
-    // int handle3 = opendir2("/meuzovo");
-    //
-    // closedir2(handle1);
-    // closedir2(handle2);
-
-//testes read2
-    // FILE2 teste = open2("file1.txt");
-    // FILE2 teste2 = open2("file2.txt");
-    // seek2(teste2, -1);
-    // close2(teste2);
-    // teste2 = open2("file2.txt");
-    // char buffer[10000];
-    // read2(teste2, buffer, 10000);
-    // printf("\n%s\n", buffer);
-
-    // mkdir2("/outro_dir");
-
-    // create2("/feitoria_gurizada.txt");
-    // int handle = open2("/feitoria_gurizada.txt");
-
-    // char buffer[10000];
-    // getcwd2(buffer, 10);
-    // printf("%s\n", buffer);
-    // chdir2("dir1");
-    // getcwd2(buffer, 10);
-    // printf("%s\n", buffer);
-
- // testes truncate
-  // FILE2 teste = open2("file2.txt");
-  // seek2(teste, 50);
-  // truncate2(teste);
-  //
-  // char buffer[10000];
-  // seek2(teste, 0);
-  // read2(teste, buffer, 10000);
-  // printf("\n%s\n", buffer);
-
-//testes delete
-  //delete2("file2.txt");
-
-  //rmdir2("dir1");
-  //printf("o current path depois do rmdir2 é %s\n", current_path);
-
-
-
-
-  //outro teste
-
-  // delete2("file2.txt");
-  // printf("ls no root:\n");
-  // ls();
-  // chdir2("dir1");
-  // delete2("file1.txt");
-  // printf("ls no dir:\n");
-  // ls();
-
-
-  // rmdir2("dir1");
-  // chdir2("dir1");
-  // create2("file3.txt");
-  // ls();
-  // delete2("file1.txt");
-  // chdir2("dir1");
-  // delete2("file2.txt");
-  // ls();
-  // chdir2("..");
-  // ls();
-  // rmdir2("dir1");
-  // create2("testeaaa.txt");
-  // chdir2("dir1/../././dir1");
-  // test_write2();
-  // ls();
-
-  //struct t2fs_superbloco s;
-  //readSuperBlock(&s);
-  //printf("%d\n", s.NofSectors);
 
     return 0;
 }
