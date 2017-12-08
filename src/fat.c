@@ -88,7 +88,7 @@ int find_in_which_sector_fat_entry_is(int index) {
   return sector_index;
 }
 
-print_fat() {
+int print_fat() {
   int i, fat_entry;
   
   for (i = FIRST_USABLE_FAT_ENTRY; i < NUMBER_OF_FAT_ENTRIES; i++) {
@@ -99,4 +99,12 @@ print_fat() {
   }
   
   return 0;
+}
+
+int ceil2(double number) {
+  return (int) number + 1;
+}
+
+int floor2(double number) {
+  return (int) number;
 }

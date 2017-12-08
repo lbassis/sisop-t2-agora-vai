@@ -291,13 +291,13 @@ int read2 (FILE2 handle, char *buffer, int size) {
 
     int occupied_clusters;
     int bytes_by_cluster = sectors_per_cluster*sector_size; // isso vai ser uma variavel global calculada na leitura do superbloco!!!!!!!!!!!!!!
-    occupied_clusters = ceil((float)file->record.bytesFileSize/bytes_by_cluster);
+    occupied_clusters = ceil2((float)file->record.bytesFileSize/bytes_by_cluster);
 
     ////// printf("esse arquivo ocupa %d clusters com %d\n", occupied_clusters, file->record.bytesFileSize);
 
     int already_read = 0; // bytes já lidos
 
-    int cluster_offset = floor((float)file->pointer/bytes_by_cluster);
+    int cluster_offset = floor2((float)file->pointer/bytes_by_cluster);
     int bytes_offset = file->pointer % bytes_by_cluster;
 
     int current_cluster = file->record.firstCluster;
@@ -454,8 +454,8 @@ int truncate2 (FILE2 handle) {
   }
 
   // aqui vamos descobrir em qual cluster tá o pointer do arquivo!!!!
-  int file_clusters = 1 + ceil(file->record.bytesFileSize/(SECTOR_SIZE* (superblock->SectorsPerCluster))); // tem no minimo 1 // era SECTOR_SIZE * 4
-  int pointed_cluster = ceil(file->pointer/(SECTOR_SIZE * (superblock->SectorsPerCluster))); // era SECTOR_SIZE * 4
+  int file_clusters = 1 + ceil2(file->record.bytesFileSize/(SECTOR_SIZE* (superblock->SectorsPerCluster))); // tem no minimo 1 // era SECTOR_SIZE * 4
+  int pointed_cluster = ceil2(file->pointer/(SECTOR_SIZE * (superblock->SectorsPerCluster))); // era SECTOR_SIZE * 4
   //printf("ta apontando pro cluster %d e tem %d clusters\n", pointed_cluster, file_clusters);
 
   if (pointed_cluster >= file_clusters) { // nunca vai entrar aqui mas ok
