@@ -102,7 +102,13 @@ int print_fat() {
 }
 
 int ceil2(double number) {
-  return (int) number + 1;
+  int ceiled = (int) number;
+  
+  if (ceiled < number) {
+    ceiled += 1;
+  }
+  
+  return ceiled;
 }
 
 int floor2(double number) {
