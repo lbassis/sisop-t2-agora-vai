@@ -29,27 +29,27 @@ void init() {
   open_dirs = newList();
 }
 
-
 int identify2 (char *name, int size) {
 
   if (!has_initialized) {
     init();
     has_initialized = 1;
   }
-
+  
   int i = 0;
 
-  //printf("Esse trabalho foi desenvolvido pelos alunos: \n");
-  while (i < size) {
-
-    if (name+i != NULL)
-      printf("%c", name[i]);
-
-    else
-      return -1;
-
-      i++;
-    }
+  // while (i < size) {
+  //
+  //   if (name+i != NULL)
+  //     printf("%c", name[i]);
+  //
+  //   else
+  //     return -1;
+  //
+  //     i++;
+  //   }
+  
+  printf("\nAugusto Boranga\nLucas Assis\nOctavio Arruda\n\n");
 
 return 0;
 }
@@ -139,7 +139,6 @@ int delete2 (char *filename) {
 
 
     if (strcmp(filename, "/") == 0 || strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0) {
-      //printf("Erro: tentou apagar merda\n");
       return -1;
     }
 
@@ -219,7 +218,7 @@ FILE2 open2 (char *filename) {
   // provavelmente não vai cair aqui pois se não tem espaço na lista já deve ter caído fora
   // mas é bom garantir..
   if (handler_available < 0) {
-    printf("Erro: todos handles estão ocupados\n");
+    // printf("Erro: todos handles estão ocupados\n");
     return -1;
   }
 
@@ -354,7 +353,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
   file = get_record_at_index(open_files, handle);
 
   if(file == NULL){
-    printf("handle %i n existe\n", handle);
+    // printf("handle %i n existe\n", handle);
     return ERROR; // era -1
   }
 
@@ -389,7 +388,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
 
       // checa se deu erro ao escrever
       if (write_cluster_partially(current_cluster, buffer, buffer_pointer, relative_pointer, ammount_to_write) != 0) {
-        printf("Erro ao escrever\n");
+        // printf("Erro ao escrever\n");
         return ERROR; // era -1
       }
       // printf("-> will write from buffer starting at index %i\n", buffer_pointer);
@@ -659,9 +658,7 @@ int rmdir2 (char *pathname) {
     // tem que dar um chdir2 pra dentro do diretorio pra achar os arquivos la
     chdir2(pathname);
 
-// ISSO TEM QUE VIRAR UMA FUNÇAO!!!!!
     if (strcmp(pathname, "/") == 0 || strcmp(pathname, ".") == 0 || strcmp(pathname, "..") == 0) {
-      //printf("Erro: tentou apagar merda\n");
       return ERROR;
     }
 

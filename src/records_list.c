@@ -187,7 +187,7 @@ int remove_record_at_filename(RECORDS_LIST **q, char *name) {
          free(aux);
 
          //printf("a lista ficou assim:::\n");
-         print_records(*q);
+         // print_records(*q);
          return 0;
      }
 
@@ -295,7 +295,7 @@ int delete_all_records(RECORDS_LIST **q) {
     aux = next;
   }
 
-  print_records(*q);
+  // print_records(*q);
 }
 
 int find_last_cluster(GENERIC_FILE *file) {

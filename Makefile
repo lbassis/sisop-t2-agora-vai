@@ -50,3 +50,16 @@ valgrind_run:
 	git checkout t2fs_disk.dat
 	@gcc -g -ggdb $(TEST_DIR)/main.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o $(TEST_DIR)/main
 	@valgrind $(TEST_DIR)/main
+
+shell:
+	@gcc -g -ggdb exemplo/t2fstst.c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o exemplo/teste
+	@./exemplo/teste
+	
+	
+# exemplo:
+# make test FILE=create
+test:
+	@gcc -g -ggdb testes/$(FILE).c $(BIN_DIR)/apidisk.o -I $(INC_DIR) -L lib -lt2fs -o testes/$(FILE)
+	@echo "\n> Executando teste " $(FILE) "\n"
+	@./testes/$(FILE)
+	
