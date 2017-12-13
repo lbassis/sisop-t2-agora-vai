@@ -35,7 +35,7 @@ int identify2 (char *name, int size) {
     init();
     has_initialized = 1;
   }
-  
+
   int i = 0;
 
   // while (i < size) {
@@ -48,7 +48,7 @@ int identify2 (char *name, int size) {
   //
   //     i++;
   //   }
-  
+
   printf("\nAugusto Boranga\nLucas Assis\nOctavio Arruda\n\n");
 
 return 0;
@@ -343,7 +343,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
 
     ////// printf("leu: \n%s\n", buffer);
 
-    return SUCESS; // era 0
+    return already_read; // era 0
   }
 }
 
