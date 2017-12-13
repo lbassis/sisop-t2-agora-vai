@@ -5,7 +5,7 @@ no shell:
  - ler do arquivo: read 0 100
  - seek: seek 0 2; read 0 100
  - truncate: truncate2 0 10; seek 0 0; read 0 100
- - delete: delete2 file1.txt (só funcoina com relativo porque a open só funciona com relativo)
+ - delete: delete2 file1.txt (só funciona com relativo porque a open só funciona com relativo)
  - mkdir: mkdir dir3
  - rmdir: rmdir dir1
  - create: create file10.txt
@@ -14,3 +14,8 @@ no shell:
 
 no programa:
   - delete em outro diretorio: test_delete2() (porque o chdir nao ta rolando no shell)
+
+  - pra mostrar open/close (se necessário):
+      - make test FILE=create (pra criar os arquivos e dirs que serão usados nos testes)
+      - make test FILE=openFile
+      - make test FILE=openDir
