@@ -43,7 +43,7 @@ void print_records(RECORDS_LIST *q) {
   //printf("Printing list:\n\n");
   while (aux != NULL) {
     print_record(aux->generic_file.record);
-    //printf("%s no cluster %d\n", aux->generic_file.record.name, aux->generic_file.record.firstCluster);
+    // printf("%s no cluster %d\n", aux->generic_file.record.name, aux->generic_file.record.firstCluster);
     aux = aux->next;
   }
 }
@@ -203,12 +203,12 @@ int get_fisrt_handler_available(RECORDS_LIST *list, int list_max_items) {
     int i, found_handler;
 
     // pra cada valor de handler possível
-    for (i = 0; i < list_max_items - 1; i++) {
+    for (i = 0; i < list_max_items; i++) {
 
         // bota o aux no início da lista e seta flag pra 0
         aux = list;
         found_handler = 0;
-
+        
         // percorre a lista vendo se o handler i já foi usado
         while (aux != NULL) {
             // se este handler estiver em uso pelo item atual da lista, seta uma flag
@@ -377,4 +377,20 @@ int update_bytesFileSize(GENERIC_FILE *file, RECORDS_LIST *list) {
 
   // se chegou aqui é pq nao achou.
   return -1;
+}
+
+void print_list(char *name, RECORDS_LIST *list) {
+  printf("\n\n%s\n", name);
+  printf("----------------------------------\n");
+  printf("Handle\t| Nome\n");
+  printf("----------------------------------\n");
+  
+  RECORDS_LIST *aux;
+  aux = list;
+  
+  while (aux != NULL) {
+    printf("%i\t %s\n", aux->generic_file.handler, aux->generic_file.record.name);
+    aux = aux->next;
+  }
+  printf("----------------------------------\n");
 }

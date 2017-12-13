@@ -57,7 +57,7 @@ struct t2fs_record *find_record(RECORDS_LIST *list, char *name) {
     RECORDS_LIST *aux = list;
 
     while (aux != NULL) {
-        ////printf("comparando %s com %s\n", aux->record.name, name);
+        // printf("-> comparando %s com %s\n", aux->generic_file.record.name, name);
         if (strcmp(aux->generic_file.record.name, name) == 0) {
             return &(aux->generic_file.record);
         }
@@ -217,7 +217,6 @@ char *get_filename_from_path(char *path) {
 
         buffer = strtok(NULL, "/");
     }
-
     return filename;
 }
 

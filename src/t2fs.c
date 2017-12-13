@@ -189,7 +189,7 @@ FILE2 open2 (char *filename) {
 
   // confere se ainda tem espaço na lista
   if (length >= MAX_ITEMS_IN_OPEN_LIST) {
-    // printf("\n=======\nLista com nro máximo de elementos, man\n=======\n");
+    printf("\n=======\nLista com nro máximo de elementos\n=======\n");
     return -1;
   }
 
@@ -197,21 +197,25 @@ FILE2 open2 (char *filename) {
   char *absolute_file_path = malloc(sizeof(char)*(1 + strlen(current_path) + strlen(filename)));
   strcpy(absolute_file_path, current_path);
   strcat(absolute_file_path, filename);
-
+  
   char *father_path = malloc(sizeof(absolute_file_path));
   father_path = get_father_dir_path(absolute_file_path);
-
+  
   int cluster_index = get_initial_cluster_from_path(father_path);
 
   // pega lista de entradas do diretório pai do arquivo em questão
   RECORDS_LIST *files_in_father_dir = newList();
   read_all_records(cluster_index, &files_in_father_dir);
-
+  
+  // print_records(files_in_father_dir);
+  
+  char *actual_name = (char *) get_filename_from_path(filename);
+  
   struct t2fs_record *record;
-  record = find_record(files_in_father_dir, filename);
+  record = find_record(files_in_father_dir, actual_name);
 
   if (record == NULL) {
-    // printf("Erro ao pegar record do arquivo %s\n", filename);
+    printf("Erro ao pegar record do arquivo %s\n", filename);
     return -1;
   }
 
@@ -233,11 +237,9 @@ FILE2 open2 (char *filename) {
   insert_record(&open_files, *generic_file);
 
   length = list_length(open_files);
-
-  // printf("\n===== open files =====\n");
-  // print_records(open_files);
-  // printf("\nList length: %i\n", length);
-  // printf("\n======================\n");
+  
+  // printa lista formatada bonitinha
+  print_list("Lista de arquivos abertos", open_files);
 
   return handler_available;
 }
@@ -748,7 +750,7 @@ DIR2 opendir2 (char *pathname) {
 
   // confere se ainda tem espaço na lista
   if (length >= MAX_ITEMS_IN_OPEN_LIST) {
-    //printf("\n=======\nLista com nro máximo de elementos, man\n=======\n");
+    printf("\n=======\nLista com nro máximo de elementos\n=======\n");
     return ERROR;
   }
 
@@ -789,13 +791,7 @@ DIR2 opendir2 (char *pathname) {
   // insere o arquivo
   insert_record(&open_dirs, *generic_file);
 
-  // length = list_length(open_dirs);
-  //
-  // //printf("\n===== open dirs =====\n");
-  // print_records(open_dirs);
-  // //printf("\nList length: %i\n", length);
-  //
-  // //printf("======================\n");
+  print_list("Lista de diretórios abertos", open_dirs);
 
   return handler_available;
 }
