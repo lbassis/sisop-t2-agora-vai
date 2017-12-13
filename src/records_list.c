@@ -43,7 +43,7 @@ void print_records(RECORDS_LIST *q) {
   //printf("Printing list:\n\n");
   while (aux != NULL) {
     print_record(aux->generic_file.record);
-    //printf("%s no cluster %d\n", aux->generic_file.record.name, aux->generic_file.record.firstCluster);
+    // printf("%s no cluster %d\n", aux->generic_file.record.name, aux->generic_file.record.firstCluster);
     aux = aux->next;
   }
 }
@@ -203,12 +203,12 @@ int get_fisrt_handler_available(RECORDS_LIST *list, int list_max_items) {
     int i, found_handler;
 
     // pra cada valor de handler possível
-    for (i = 0; i < list_max_items - 1; i++) {
+    for (i = 0; i < list_max_items; i++) {
 
         // bota o aux no início da lista e seta flag pra 0
         aux = list;
         found_handler = 0;
-
+        
         // percorre a lista vendo se o handler i já foi usado
         while (aux != NULL) {
             // se este handler estiver em uso pelo item atual da lista, seta uma flag

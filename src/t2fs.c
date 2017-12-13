@@ -190,7 +190,7 @@ FILE2 open2 (char *filename) {
 
   // confere se ainda tem espaço na lista
   if (length >= MAX_ITEMS_IN_OPEN_LIST) {
-    // printf("\n=======\nLista com nro máximo de elementos, man\n=======\n");
+    printf("\n=======\nLista com nro máximo de elementos\n=======\n");
     return -1;
   }
 
@@ -234,11 +234,21 @@ FILE2 open2 (char *filename) {
   insert_record(&open_files, *generic_file);
 
   length = list_length(open_files);
-
-  // printf("\n===== open files =====\n");
-  // print_records(open_files);
-  // printf("\nList length: %i\n", length);
-  // printf("\n======================\n");
+  
+  // printa lista formatada bonitinha
+  printf("\n\nLista de arquivos abertos\n");
+  printf("----------------------------------\n");
+  printf("Handle\t| Nome\n");
+  printf("----------------------------------\n");
+  
+  RECORDS_LIST *aux;
+  aux = open_files;
+  
+  while (aux != NULL) {
+    printf("%i\t %s\n", aux->generic_file.handler, aux->generic_file.record.name);
+    aux = aux->next;
+  }
+  printf("----------------------------------\n");
 
   return handler_available;
 }
