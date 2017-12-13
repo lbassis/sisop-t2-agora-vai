@@ -1,4 +1,5 @@
 no shell:
+ - who (tava usando implementaçao do trabalho antigo)
  - abrir arquivo que nao existe: open file902458240952.txt
  - abrir arquivo que existe: open file1.txt
  - close: close 0

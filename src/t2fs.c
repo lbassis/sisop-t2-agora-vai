@@ -38,18 +38,17 @@ int identify2 (char *name, int size) {
 
   int i = 0;
 
-  // while (i < size) {
-  //
-  //   if (name+i != NULL)
-  //     printf("%c", name[i]);
-  //
-  //   else
-  //     return -1;
-  //
-  //     i++;
-  //   }
+  while (i < size) {
 
-  printf("\nAugusto Boranga\nLucas Assis\nOctavio Arruda\n\n");
+    if (name+i != NULL)
+      name[i] = NAMES[i];
+
+    else
+      return -1;
+
+      i++;
+    }
+
 
 return 0;
 }
