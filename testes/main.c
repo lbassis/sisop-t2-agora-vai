@@ -53,9 +53,22 @@ void test_write2() {
   printf("\n-> Conteudo do arquivo:\n%s\n\n", another_buffer);
 }
 
+void test_truncate2() {
+
+  FILE2 file = open2("file1.txt");
+  seek2(file, 2);
+  truncate2(file);
+  seek2(file, 0);
+
+  char buffer[10000];
+  read2(file, buffer, 1000);
+  printf("leu: %s\n", buffer);
+
+}
+
+
 int main() {
-  test_write2();
-  chdir2("..");
-  ls();
+  test_truncate2();
+
     return 0;
 }
