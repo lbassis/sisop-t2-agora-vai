@@ -84,7 +84,6 @@ GENERIC_FILE *get_record_at_index(RECORDS_LIST *q, int index) {
 
   while (aux != NULL) {
     if (i == index) {
-      // //printf("achou o %s\n", aux->generic_file.record.name);
       return &(aux->generic_file);
     }
 

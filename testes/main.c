@@ -53,7 +53,7 @@ void test_write2() {
   printf("\n-> Conteudo do arquivo:\n%s\n\n", another_buffer);
 }
 
-void test_truncate2() {
+void test_truncate2() { // 100%
 
   FILE2 file = open2("file1.txt");
   seek2(file, 2);
@@ -66,9 +66,16 @@ void test_truncate2() {
 
 }
 
+void test_delete2() {
+
+  chdir2("dir1");
+  delete2("file1.txt");
+  ls();
+}
+
 
 int main() {
-  test_truncate2();
+  test_delete2();
 
     return 0;
 }

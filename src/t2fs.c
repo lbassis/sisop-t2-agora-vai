@@ -123,14 +123,14 @@ int delete2 (char *filename) {
     has_initialized = 1;
   }
 
-  //printf("caminho absoluto: %s\n", current_path);
   char *absolute_file_path = malloc(sizeof(char)*(1 + strlen(current_path) + strlen(filename)));
   strcpy(absolute_file_path, current_path);
   strcat(absolute_file_path, filename);
-  FILE2 file = open2(absolute_file_path);
+  FILE2 file = open2(filename);
   seek2(file, 0);
   truncate2(file);
 
+  print_records(open_files);
   GENERIC_FILE *deleted =  get_record_at_index(open_files, file);
 
 
@@ -139,6 +139,8 @@ int delete2 (char *filename) {
 
 
     if (strcmp(filename, "/") == 0 || strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0) {
+      printf("nao rolou de remover por causa do nome\n");
+
       return -1;
     }
 
@@ -165,6 +167,7 @@ int delete2 (char *filename) {
       return 0;
     }
     else {
+      printf("nao rolou de remover\n");
       close2(file);
       return -1;
     }
@@ -173,6 +176,7 @@ int delete2 (char *filename) {
 
   else {
     close2(file);
+    printf("deu nulo\n");
     return -1;
   }
 }
@@ -497,7 +501,7 @@ int truncate2 (FILE2 handle) {
     if (is_first_cluster) {
       //printf("vai truncar o cluster %d\n", current_cluster);
       set_fat_entry(current_cluster, -1); // diz que o cluster atual é o ultimo do arquivo
-      truncate_cluster(current_cluster, file->pointer % (SECTOR_SIZE*superblock->SectorsPerCluster)); // complicado mudar isso, n sei se vale
+      truncate_cluster(current_cluster, file->pointer % (SECTOR_SIZE*superblock->SectorsPerCluster));
       is_first_cluster = 0;
     }
 
@@ -514,11 +518,13 @@ int truncate2 (FILE2 handle) {
 
 
   file->record.bytesFileSize = file->pointer;
+  //update_bytesFileSize_in_father_dir(file);
   seek2(handle, file->record.bytesFileSize);
   //printf("o arquivo ficou com %d bytes e com pointer = %d\n", file->record.bytesFileSize, file->pointer);
 
   return 0;
 }
+
 
 int seek2 (FILE2 handle, unsigned int offset) {
 
