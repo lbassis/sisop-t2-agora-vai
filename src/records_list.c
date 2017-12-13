@@ -378,3 +378,19 @@ int update_bytesFileSize(GENERIC_FILE *file, RECORDS_LIST *list) {
   // se chegou aqui é pq nao achou.
   return -1;
 }
+
+void print_list(char *name, RECORDS_LIST *list) {
+  printf("\n\n%s\n", name);
+  printf("----------------------------------\n");
+  printf("Handle\t| Nome\n");
+  printf("----------------------------------\n");
+  
+  RECORDS_LIST *aux;
+  aux = list;
+  
+  while (aux != NULL) {
+    printf("%i\t %s\n", aux->generic_file.handler, aux->generic_file.record.name);
+    aux = aux->next;
+  }
+  printf("----------------------------------\n");
+}
