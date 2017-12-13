@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define NAMES "Augusto Boranga\nLucas Assis\nOct�vio Arruda\n"
+#define NAMES "Augusto Boranga\nLucas Assis\nOctavio Arruda\n"
 #define NAMES_SIZE 45
 
 
