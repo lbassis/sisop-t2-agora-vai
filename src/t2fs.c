@@ -130,7 +130,7 @@ int delete2 (char *filename) {
   seek2(file, 0);
   truncate2(file);
 
-  print_records(open_files);
+
   GENERIC_FILE *deleted =  get_record_at_index(open_files, file);
 
 
@@ -139,7 +139,6 @@ int delete2 (char *filename) {
 
 
     if (strcmp(filename, "/") == 0 || strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0) {
-      printf("nao rolou de remover por causa do nome\n");
 
       return -1;
     }
@@ -518,7 +517,7 @@ int truncate2 (FILE2 handle) {
 
 
   file->record.bytesFileSize = file->pointer;
-  //update_bytesFileSize_in_father_dir(file);
+  update_bytesFileSize_in_father_dir(file);
   seek2(handle, file->record.bytesFileSize);
   //printf("o arquivo ficou com %d bytes e com pointer = %d\n", file->record.bytesFileSize, file->pointer);
 

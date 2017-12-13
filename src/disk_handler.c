@@ -194,7 +194,7 @@ unsigned int first_empty_cluster() {
 }
 
 void ls() {
-    printf("ls no %s:\n", current_path);
+    //printf("ls no %s:\n", current_path);
     RECORDS_LIST *a;
     read_all_records(get_initial_cluster_from_path(current_path), &a);
     print_records(a);

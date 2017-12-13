@@ -338,7 +338,7 @@ int calculate_bytes_available_in_last_cluster(GENERIC_FILE *file) {
     occupied -= bytes_per_cluster;
   }
 
-  printf("====> livres: %i\n", bytes_per_cluster - occupied);
+  //printf("====> livres: %i\n", bytes_per_cluster - occupied);
 
   return bytes_per_cluster - occupied;
 }
